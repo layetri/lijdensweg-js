@@ -8,18 +8,31 @@ class Game {
 	constructor() {
 		this.allPlayers = [];
 		this.activePlayers = [];
+		this.board;
+		this.hasStarted = false;
+		this.maxPlayers = 4;
+	}
+	
+	canJoin() {
+		return !hasStarted && allPlayers.length < maxPlayers;
 	}
 	
 	playerJoins(player) {
-		this.allPlayers.push(player);
+		if (canJoin) {
+			//accept
+			this.allPlayers.push(player);
+		}
 	}
 	
 	playerLeaves(player) {
 		this.allPlayers.remove(player);
+		this.activePlayers.remove(player);
 	}
 	
 	startGame() {
 		this.activePlayers = this.allPlayers.shuffled;
+		this.board = new Board(50);
+		
 		this.sendInfoToAll();
 		while(this.activePlayers.length > 0) {
 			this.nextTurn();
@@ -44,33 +57,15 @@ class Game {
 
 		//wait for response
 
-		player.sendMessage(messageType.rollDice);
+		player.sendMessage("rollDice");
 		//wait for response
 		
-		for(let i = 0; i < this.rollDice(); i++) {
-			if (currentTile.isJunction) {
-				player.sendMessage(messageType.chooseNextTile);
-				//wait for response
-				currentTile = response;
-			}
-			else {
-				currentTile = currentTile.nextTiles[0];
-			}
-			
-			
-			currentTile = currentTile.nextTile;
-			player.movePlayer(player, currentTile);
-			if (currentTile.isEndTile) {
-				this.playerFinished(player);
-				return;
-			}
-		}	
-		currentTile.tileUpdate();
+		board.movePlayer(player, this.rollDice());
 	}
 	
 	playerFinished(player) {
 		this.activePlayers.remove(player);
-		this.sendMessageToAll(messageType.playerFinished, player);
+		this.sendMessageToAll('playerFinished', player);
 	}
 
 	sendMessageToAll(messageType, data) {
