@@ -1,6 +1,7 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+  use App\Http\Controllers\RoomController;
+  use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,8 +14,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('landing');
-});
+// Present landing page
+Route::get('/', [RoomController::class, 'knock']);
+// Join a room
+Route::post('join', [RoomController::class, 'checkIn']);
 
-Route::get('game/{room_id}', 'RoomController@checkIn');
+// Group fetch functions together
+Route::prefix('fetch')->group(function() {
+  Route::get('init_data', [RoomController::class, 'init']);
+  Route::get('rooms', [RoomController::class, 'fetchRooms']);
+});

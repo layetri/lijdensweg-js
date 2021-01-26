@@ -18,7 +18,9 @@ class Player {
 		this.cards.remove(card);
 	}
 	
-	sendMessage(messageType, data) {
-		this.connection.send(messageType, data);
+	async sendMessage(messageType, data) {
+		//this.connection.send(messageType, data);
+
+		return 'yay';
 	}
 }

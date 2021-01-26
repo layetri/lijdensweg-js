@@ -1,12 +1,19 @@
-export class Game {
-  constructor() {
+import Player from './Player';
+
+export default class Game {
+  constructor(user, localConnection) {
     this.allPlayers = [];
     this.activePlayers = [];
     this.player = null;
+    this.connection = null;
+    this.local = localConnection;
+    this.user = user;
   }
 
   joinGame(connection) {
-    this.player = new Player(connection);
+    this.player = new Player(this.user.name, this.user.id, connection, this.local);
+    this.allPlayers.push(this.player);
+    this.connection = connection;
   }
 
   playerJoins(player) {
@@ -19,7 +26,7 @@ export class Game {
 
   startGame() {
     this.activePlayers = this.allPlayers.shuffle();
-    this.sendInfoToAll();
+    this.sendMessageToAll('startGame', []);
     while(this.activePlayers.length > 0) {
       this.nextTurn();
     }
@@ -31,6 +38,9 @@ export class Game {
   }
 
   nextTurn() {
+    // TODO: implement timeout for player turn
+    // TODO: limit turn action to current active player only
+
     let player = this.activePlayers.shift();
     this.activePlayers.push(player);
     let currentTile = player.currentTile;
@@ -47,7 +57,16 @@ export class Game {
     //wait for response
 
     for(let i = 0; i < this.rollDice(); i++) {
-      player.currentTile = player.currentTile.nextTile;
+      if (currentTile.isJunction) {
+        player.sendMessage('chooseNextTile').then((response) => {
+          //wait for response
+          currentTile = response;
+        });
+      }
+      else {
+        currentTile = currentTile.nextTiles[0];
+      }
+
       this.player.movePlayer(player, currentTile);
       if (currentTile.isEndTile) {
         this.playerFinished(player);
@@ -64,7 +83,7 @@ export class Game {
 
   sendMessageToAll(messageType, data) {
     for(let i = 0; i < this.allPlayers.length; i++) {
-      this.allPlayers[i].sendMessage(messageType, data);
+      this.connection.send(messageType, data);
     }
   }
 
