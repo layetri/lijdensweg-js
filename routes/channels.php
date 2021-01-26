@@ -13,14 +13,11 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
-    return (int) $user->id === (int) $id;
-});
 
-Broadcast::channel('{room}', function($room) {
+Broadcast::channel('room.{room}', function($user, $room) {
   return true;
 });
 
-Broadcast::channel('presence-{room}', function($room) {
-  return true;
+Broadcast::channel('presence.{room}', function($user, $room) {
+  return ['name' => $user->name, 'id' => $user->id];
 });

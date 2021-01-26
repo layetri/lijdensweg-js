@@ -6,14 +6,14 @@
           <b>Spelers in deze kamer</b>
           <div class="my-4">
             <div v-for="player in game.allPlayers">
-              {{player.name}}
+              {{player.name}} <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
             </div>
           </div>
 
           <button class="text-sm py-2 px-4 bg-blue-400 text-white rounded-lg shadow">Nodig vrienden uit</button>
         </div>
         <div class="flex-auto text-center">
-          <button class="text-2xl py-2 px-8 bg-blue-400 text-white rounded-xl shadow" @click="game.startGame()">start</button>
+          <button class="text-2xl py-2 px-8 bg-blue-400 text-white rounded-xl shadow" @click="initGame()">start</button>
         </div>
       </div>
     </div>
@@ -38,21 +38,25 @@
       return {
         localBus: new Vue(),
         game: new Game(this.user, this.localBus),
+        board: null,
         connection: null,
         started: false
       }
     },
     created() {
-      this.connection = Echo.channel(this.room);
-      this.presence = Echo.join('presence-'+this.room)
-          .joining((player) => {
+      this.connection = Echo.private('room.'+this.room);
+      this.presence = Echo.join('presence.'+this.room)
+          .here((players) => {
+            console.log(players);
+            for(let i = 0; i < players.length; i++) {
+              if(players[i].id !== this.user.id) {
+                this.game.playerJoins(players[i]);
+              }
+            }
+          }).joining((player) => {
             this.game.playerJoins(player);
           }).leaving((player) => {
             this.game.playerLeaves(player);
-          }).here((players) => {
-            for(let i = 0; i < players; i++) {
-              this.game.playerJoins(players[i]);
-            }
           });
       this.game.joinGame(this.connection);
 
@@ -61,17 +65,48 @@
     },
     methods: {
       handleConnection() {
-        this.connection.on('', () => {
-
-        })
+        /*
+        Events:
+        - startGame
+        - playerFinished
+        - receivedChat
+       */
+        this.connection.listenForWhisper('startGame', data => {
+          console.log('Game started!');
+          console.log(data);
+          this.startGame();
+        }).listenForWhisper('playerFinished', data => {
+          console.log('player finished their turn');
+          console.log(data);
+        }).listenForWhisper('receivedChat', data => {
+          console.log(data);
+        });
       },
       handleUIThread() {
-        this.localBus.$on('startGame', this.startGame());
-        this.localBus.$on('startGame', this.startGame());
+        //this.localBus.$on('startGame', this.startGame());
+      },
+      initGame() {
+        axios.get('/generate/board/'+this.room).then(res => {
+          console.log(res.data);
+          this.game.startGame();
+          this.startGame();
+        });
       },
       startGame() {
-
+        // Countdown from 3
+        // Switch to playing state
+        // Load game board from API
+        this.loadBoard();
+      },
+      loadBoard() {
+        axios.get('/fetch/board/'+this.room).then(res => {
+          this.board = new Board(res.data.board);
+        });
       }
+    },
+    destroyed() {
+      this.presence.leave();
+      this.connection.leave();
     }
   }
 </script>

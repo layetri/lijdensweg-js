@@ -1,4 +1,5 @@
 import Player from './Player';
+import LocalPlayer from './LocalPlayer';
 
 export default class Game {
   constructor(user, localConnection) {
@@ -11,26 +12,27 @@ export default class Game {
   }
 
   joinGame(connection) {
-    this.player = new Player(this.user.name, this.user.id, connection, this.local);
+    this.player = new LocalPlayer(this.user.name, this.user.id, connection, this.local);
     this.allPlayers.push(this.player);
     this.connection = connection;
   }
 
   playerJoins(player) {
-    this.allPlayers.push(player);
+    let instance =  new Player(player.name, player.id);
+    this.allPlayers.push(instance);
   }
 
   playerLeaves(player) {
-    this.allPlayers.remove(player);
+    this.allPlayers.splice(this.allPlayers.indexOf(player), 1);
   }
 
   startGame() {
-    this.activePlayers = this.allPlayers.shuffle();
+    //this.activePlayers = this.allPlayers.shuffle();
     this.sendMessageToAll('startGame', []);
-    while(this.activePlayers.length > 0) {
-      this.nextTurn();
-    }
-    this.endGame();
+    // while(this.activePlayers.length > 0) {
+    //   this.nextTurn();
+    // }
+    // this.endGame();
   }
 
   endGame() {
@@ -82,9 +84,13 @@ export default class Game {
   }
 
   sendMessageToAll(messageType, data) {
-    for(let i = 0; i < this.allPlayers.length; i++) {
-      this.connection.send(messageType, data);
-    }
+    /*
+      Events:
+      - startGame
+      - playerFinished
+      - receivedChat
+     */
+    this.connection.whisper(messageType, data);
   }
 
   rollDice() {

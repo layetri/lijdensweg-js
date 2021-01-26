@@ -1,11 +1,9 @@
 export default class Player {
-  constructor(name, id, connection, local) {
+  constructor(name, id) {
     this.name = name;
     this.id = id;
-    this.connection = connection;
-    this.local = local;
+    //this.play_order = null;
     this.currentTile = null;
-    this.cards = [];
     this.infection = 0;
     this.insanity = 50;
   }
@@ -19,25 +17,5 @@ export default class Player {
     card.perform();
     this.sendMessage('useCard', card).then();
     this.cards.remove(card);
-  }
-
-  async sendMessage(messageType, data) {
-    //this.connection.send(messageType, data);
-    /*
-    Events:
-    - startGame
-    - chooseCard {response->type: [pickedCard, ...]}
-    - rollDice
-    - chooseNextTile
-    - playerFinished
-
-    - giveCard
-    - useCard
-
-    -
-     */
-    this.local.$emit(messageType, data);
-
-    return 'yay';
   }
 }
