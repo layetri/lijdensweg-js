@@ -6,28 +6,28 @@ class Tile {
 		this.specialFunction = specialFunction;
 	}
 	
-	boolean isEndTile() {
-		return nextTiles.length < 1;
+	isEndTile() {
+		return this.nextTiles.length < 1;
 	}
 	
-	function tileUpdate() {
-		infectionFunction();
-		insanityFunction();
-		if (specialFunction != null) specialFunction;
+	tileUpdate() {
+		this.infectionFunction();
+		this.insanityFunction();
+		if (this.specialFunction != null) this.specialFunction();
 	}
 	
-	function infectionFunction() {
-		if (players.length > 1) {
-			for (int i = 0; i < players.length; i++) {
-				players[i].infection++;
+	infectionFunction() {
+		if (this.players.length > 1) {
+			for(let i = 0; i < this.players.length; i++) {
+				this.players[i].infection++;
 			}
 		}
 	}
 	
-	function insanityFunction() {
-		if (players.length > 1) {
-			for (int i = 0; i < players.length; i++) {
-				players[i].insanity++;
+	insanityFunction() {
+		if (this.players.length > 1) {
+			for(let i = 0; i < this.players.length; i++) {
+				this.players[i].insanity++;
 			}
 		}
 	}

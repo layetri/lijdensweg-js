@@ -1,5 +1,5 @@
 class Card {
-	function perform() {
+	perform() {
 		
 	}
 }
@@ -10,65 +10,66 @@ class Game {
 		this.activePlayers = [];
 	}
 	
-	function playerJoins(player) {
-		allPlayers.push(player);
+	playerJoins(player) {
+		this.allPlayers.push(player);
 	}
 	
-	function playerLeaves(player) {
-		allPlayers.remove(player);
+	playerLeaves(player) {
+		this.allPlayers.remove(player);
 	}
 	
-	function startGame() {
-		activePlayers = allPlayers.shuffled;
-		sendInfoToAll();
-		while(activePlayers.length > 0) {
-			nextTurn();
+	startGame() {
+		this.activePlayers = this.allPlayers.shuffled;
+		this.sendInfoToAll();
+		while(this.activePlayers.length > 0) {
+			this.nextTurn();
 		}
-		endGame();
+		this.endGame();
 	}
 	
-	function endGame() {
+	endGame() {
 		
 	}
 	
-	function nextTurn() {
-		var player = activePlayers.shift();
-		activePlayers.push(player);
-		var currentTile = player.currentTile;
+	nextTurn() {
+		let player = this.activePlayers.shift();
+		this.activePlayers.push(player);
+		let currentTile = player.currentTile;
 		
-		player.sendMessage(messageType.chooseCard);
+		player.sendMessage(messageType.chooseCard).then((response) => {
+			if (response.pickedCard) {
+				player.giveCard(getRandomCard)
+			}
+		});
+
 		//wait for response
-		
-		if (response.pickedCard) {
-			player.giveCard(getRandomCard)
-		}
-		
+
 		player.sendMessage(messageType.rollDice);
 		//wait for response
 		
-		for (int i = 0; i < rollDice(); i++) {
+		for(let i = 0; i < this.rollDice(); i++) {
 			currentTile = currentTile.nextTile;
-			movePlayer(player, currentTile);
+			player.movePlayer(player, currentTile);
 			if (currentTile.isEndTile) {
-				playerFinished(player);
+				this.playerFinished(player);
 				return;
 			}
 		}	
 		currentTile.tileUpdate();
 	}
 	
-	function playerFinished(player) {
-		activePlayers.remove(player);
-		sendMessageToAll(messageType.playerFinished, player);
+	playerFinished(player) {
+		this.activePlayers.remove(player);
+		this.sendMessageToAll(messageType.playerFinished, player);
 	}
 
-	function sendMessageToAll(messageType, data) {
-		for (int i = 0; i < allPlayers.length; i++) {
-			allPlayers[i].sendMessage(messageType, data);
+	sendMessageToAll(messageType, data) {
+		for(let i = 0; i < this.allPlayers.length; i++) {
+			this.allPlayers[i].sendMessage(messageType, data);
 		}	
 	}	
 	
-	function rollDice() {
-		return random(1,6);
+	rollDice() {
+		return Math.round(Math.random() * 5) + 1;
 	}
 }

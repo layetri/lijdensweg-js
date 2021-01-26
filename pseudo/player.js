@@ -1,22 +1,24 @@
 class Player {
 	constructor(connection) {
 		this.connection = connection;
-		currentTile;
-		cards = [];
+		this.currentTile = null;
+		this.cards = [];
+		this.infection = 0;
+		this.insanity = 50;
 	}
 	
-	function giveCard(card) {
-		cards.push(card);
-		sendMessage(messageType.giveCard, card)
+	giveCard(card) {
+		this.cards.push(card);
+		this.sendMessage(messageType.giveCard, card)
 	}
 	
-	function useCard(card) {
+	useCard(card) {
 		card.perform();
-		sendMessage(messageType.useCard, card)
-		cards.remove(card);
+		this.sendMessage(messageType.useCard, card)
+		this.cards.remove(card);
 	}
 	
-	function sendMessage(messageType, data) {
-		send(connection, messageType, data);
+	sendMessage(messageType, data) {
+		send(this.connection, messageType, data);
 	}
 }
