@@ -1,12 +1,5 @@
 <template>
   <div>
-    <div class="w-full flex">
-      <div class="flex-auto"></div>
-      <div class="flex-grow-0 px-4 py-2" v-if="user !== null">
-        {{user.name}}
-        <span class="text-gray-700" v-if="room !== null">@ {{room}}</span>
-      </div>
-    </div>
     <div v-if="joined">
       <game :room="room" :user="user"></game>
     </div>

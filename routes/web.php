@@ -25,6 +25,11 @@ Route::prefix('generate')->group(function() {
   Route::get('board/{room}', [BoardController::class, 'generateBoard']);
 });
 
+// Group set functions together
+Route::prefix('set')->group(function() {
+  Route::post('username', [RoomController::class, 'changeNickname']);
+});
+
 // Group fetch functions together
 Route::prefix('fetch')->group(function() {
   Route::get('init_data', [RoomController::class, 'init']);

@@ -1,5 +1,16 @@
 <template>
   <div id="mainWindow">
+    <div class="w-full flex">
+      <div class="flex-auto"></div>
+      <div class="flex-grow-0 px-4 py-2" v-if="user !== null">
+        <span v-if="!editUsername" @dblclick="editUsername = true">
+          {{user.name}}
+        </span>
+        <input type="text" v-else v-model="user.name" class="py-2 px-4 bg-white rounded shadow" @keydown.enter="updateUsername()">
+        <span class="text-gray-700" v-if="room !== null">@ {{room}}</span>
+      </div>
+    </div>
+
     <div class="container mx-auto py-9" v-if="!started">
       <div class="flex">
         <div class="w-1/4 p-4 bg-white border-gray-100 shadow rounded-lg">
@@ -38,6 +49,7 @@
       return {
         localBus: new Vue(),
         game: new Game(this.user, this.localBus),
+        editUsername: false,
         board: null,
         connection: null,
         started: false
@@ -70,6 +82,7 @@
         - startGame
         - playerFinished
         - receivedChat
+        - changedUsername
        */
         this.connection.listenForWhisper('startGame', data => {
           console.log('Game started!');
@@ -80,6 +93,12 @@
           console.log(data);
         }).listenForWhisper('receivedChat', data => {
           console.log(data);
+        }).listenForWhisper('changedUsername', data => {
+          let user = this.game.allPlayers.findIndex(player => {
+            return player.id === data.id;
+          });
+
+          this.game.allPlayers[user].name = data.name;
         });
       },
       handleUIThread() {
@@ -101,6 +120,15 @@
       loadBoard() {
         axios.get('/fetch/board/'+this.room).then(res => {
           this.board = new Board(res.data.board);
+        });
+      },
+      updateUsername() {
+        axios.post('/set/username', {
+          name: this.user.name
+        }).then(res => {
+          this.connection.whisper('changedUsername', {id: this.user.id, name: this.user.name});
+          this.game.allPlayers[0].name = this.user.name;
+          this.editUsername = false;
         });
       }
     },
