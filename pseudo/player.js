@@ -19,6 +19,6 @@ class Player {
 	}
 	
 	sendMessage(messageType, data) {
-		send(this.connection, messageType, data);
+		this.connection.send(messageType, data);
 	}
 }
