@@ -48,6 +48,16 @@ class Game {
 		//wait for response
 		
 		for(let i = 0; i < this.rollDice(); i++) {
+			if (currentTile.isJunction) {
+				player.sendMessage(messageType.chooseNextTile);
+				//wait for response
+				currentTile = response;
+			}
+			else {
+				currentTile = currentTile.nextTiles[0];
+			}
+			
+			
 			currentTile = currentTile.nextTile;
 			player.movePlayer(player, currentTile);
 			if (currentTile.isEndTile) {
