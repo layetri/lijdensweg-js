@@ -6,6 +6,10 @@ class Tile {
 		this.specialFunction = specialFunction;
 	}
 	
+	isJunction() {
+		return this.nextTiles.length > 1;
+	}
+	
 	isEndTile() {
 		return this.nextTiles.length < 1;
 	}
