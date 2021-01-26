@@ -28,8 +28,26 @@
         </div>
       </div>
     </div>
+
+<!--  Game main screen  -->
     <div v-else>
+      <div class="w-1/4 p-4 bg-white border-gray-100 shadow rounded-lg">
+        <b>Spelers in deze kamer</b>
+        <div class="my-4">
+          <div :class="[player.play_order === game.order_number ? 'font-bold' : 'text-gray-700']" v-for="player in game.allPlayers">
+            {{player.name}} <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
+          </div>
+        </div>
+
+        <button class="text-sm py-2 px-4 bg-blue-400 text-white rounded-lg shadow">Nodig vrienden uit</button>
+      </div>
+
+      <div class="text-9xl font-bold" v-if="dice !== null">
+        {{dice}}
+      </div>
+
       <board></board>
+      <button class="text-lg py-2 px-4 bg-blue-400 text-white rounded-lg shadow" v-if="game.player.play_order === game.order_number" @click="game.endTurn()">Klaar</button>
 
       <div class="w-full fixed bottom-0">
         <div class="w-1/2 flex mx-auto">
@@ -54,21 +72,29 @@
     data() {
       return {
         localBus: new Vue(),
-        game: new Game(this.user, this.localBus),
+        game: null,
         editUsername: false,
         board: null,
         connection: null,
-        started: false
+        started: false,
+        dice: null,
+        yourTurn: false,
       }
     },
     created() {
+      this.game = new Game(this.user, this.room, this.localBus);
+
       this.connection = Echo.private('room.'+this.room);
       this.presence = Echo.join('presence.'+this.room)
           .here((players) => {
-            console.log(players);
-            for(let i = 0; i < players.length; i++) {
-              if(players[i].id !== this.user.id) {
-                this.game.playerJoins(players[i]);
+            if(players.length > 6) {
+              this.connection.leave();
+              this.presence.leave();
+            } else {
+              for (let i = 0; i < players.length; i++) {
+                if (players[i].id !== this.user.id) {
+                  this.game.playerJoins(players[i]);
+                }
               }
             }
           }).joining((player) => {
@@ -91,10 +117,11 @@
         - changedUsername
        */
         this.connection.listenForWhisper('startGame', data => {
-          this.startGame();
+          this.startGame(data.startOrder);
         }).listenForWhisper('playerFinished', data => {
           console.log('player finished their turn');
           console.log(data);
+          this.game.handleEndOfTurn();
         }).listenForWhisper('receivedChat', data => {
           console.log(data);
         }).listenForWhisper('changedUsername', data => {
@@ -106,16 +133,29 @@
         });
       },
       handleUIThread() {
-        //this.localBus.$on('startGame', this.startGame());
+
+        this.localBus.$on('rollDice', data => {
+          this.dice = data.dice;
+          setTimeout(() => {
+            this.dice = null;
+          }, 2000);
+        });
       },
       initGame() {
         axios.get('/generate/board/'+this.room).then(res => {
           console.log(res.data);
-          this.game.startGame();
-          this.startGame();
+          let order = this.game.startGame();
+          this.startGame(order);
         });
       },
-      startGame() {
+      startGame(order) {
+        // Assign play order to players
+        for(let i = 0; i < order.length; i++) {
+          let plyr = this.game.allPlayers.find(player => {
+            return player.id === order[i].id
+          });
+          plyr.play_order = order[i].order;
+        }
         // Countdown from 3
         // Switch to playing state
         // Load game board from API

@@ -1,7 +1,9 @@
 <?php
 
   use App\Http\Controllers\BoardController;
+  use App\Http\Controllers\GameController;
   use App\Http\Controllers\RoomController;
+  use App\Http\Controllers\SituationController;
   use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,4 +37,7 @@ Route::prefix('fetch')->group(function() {
   Route::get('init_data', [RoomController::class, 'init']);
   Route::get('rooms', [RoomController::class, 'fetchRooms']);
   Route::get('board/{room}', [BoardController::class, 'fetchBoard']);
+
+  Route::get('card', [SituationController::class, 'takeOne']);
+  Route::get('dice', [GameController::class, 'rollDice']);
 });

@@ -25,6 +25,8 @@ export default class LocalPlayer extends Player {
      */
     this.local.$emit(messageType, data);
 
-    return 'yay';
+    return this.local.$on('resumeBackend', res => {
+      return res;
+    });
   }
 }

@@ -2,7 +2,7 @@ export default class Player {
   constructor(name, id) {
     this.name = name;
     this.id = id;
-    //this.play_order = null;
+    this.play_order = null;
     this.currentTile = null;
     this.infection = 0;
     this.insanity = 0;
