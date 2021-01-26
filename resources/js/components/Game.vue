@@ -30,7 +30,13 @@
     </div>
     <div v-else>
       <board></board>
-      <infection-meter :amount="game.player.infection"></infection-meter>
+
+      <div class="w-full fixed bottom-0">
+        <div class="w-1/2 flex mx-auto">
+          <infection-meter class="w-1/2" :amount="game.player.infection"></infection-meter>
+          <insanity-meter class="w-1/2" :amount="game.player.insanity"></insanity-meter>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -85,8 +91,6 @@
         - changedUsername
        */
         this.connection.listenForWhisper('startGame', data => {
-          console.log('Game started!');
-          console.log(data);
           this.startGame();
         }).listenForWhisper('playerFinished', data => {
           console.log('player finished their turn');
@@ -116,6 +120,26 @@
         // Switch to playing state
         // Load game board from API
         this.loadBoard();
+        this.started = true;
+
+        setInterval(() => {
+          if(this.game.player.infection < 100) {
+            this.game.player.increaseInfection(10);
+          } else {
+            this.game.player.increaseInfection(-100);
+          }
+        }, 500);
+        //
+        // setInterval(() => {
+        //   if(this.game.player.insanity < 50) {
+        //     this.game.player.increaseInsanity(10);
+        //   } else {
+        //     this.game.player.increaseInsanity(-100);
+        //   }
+        // }, 500);
+
+        // this.game.player.infection = Math.round(Math.random() * 100);
+        this.game.player.insanity = -50;
       },
       loadBoard() {
         axios.get('/fetch/board/'+this.room).then(res => {

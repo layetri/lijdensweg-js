@@ -5,7 +5,19 @@ export default class Player {
     //this.play_order = null;
     this.currentTile = null;
     this.infection = 0;
-    this.insanity = 50;
+    this.insanity = 0;
+  }
+
+  increaseInfection(amount = 1) {
+    if(this.infection + amount <= 100 && this.infection + amount >= 0) {
+      this.infection += amount;
+    }
+  }
+
+  increaseInsanity(amount = 1) {
+    if(this.insanity + amount <= 50 && this.insanity + amount >= -50) {
+      this.insanity += amount;
+    }
   }
 
   giveCard(card) {
