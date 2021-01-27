@@ -5,116 +5,124 @@ class Board {
 		this.createBoard();
 		
 		this.tileWidth = 10;
-		this.tileHeight = 10;
-		this.totalTiles = 0;
+		this.tileHeight = 10
 	}
 
-	// Create a single branch and link it to its parent
-	createPath(nTiles, prevTile, nextTile) {
-		let path = [];
-		// Fill the path array
-		for (let i = 0; i <  nTiles; i++) {
-			path.push(new Tile(null));
-		}
-		// Set the direct previous neighbour
-		this.setPrevious(path);
-		// Set the direct next neighbour
-		this.setNext(path);
-		// Find and set any indirect previous neighbours
-		if(typeof prevTile !== "undefined") {
-			if (prevTile != null) {
-				prevTile.nextTiles.push(path[0]);
-				path[0].previousTiles.push(prevTile);
-			}
-		}
-		// Find and set any indirect next neighbours
-		if(typeof nextTile !== "undefined") {
-			if (nextTile != null) {
-				nextTile.previousTiles.push(path[path.length]);
-				path[path.length].nextTiles.push(nextTile);
-			}
-			
-		}
-		return path;
-	}
-
-	// Append a number of tiles in a straight line
+	// Append the main path by an amount
 	appendPath(nTiles) {
-		//let path;
-		if (this.tiles.length === 0) {
-			this.tiles = this.createPath(nTiles);
+		let prevTile = tiles.length == 0 ? null : tiles[tiles.length];
+		let startDistance = prevTile == null ? 0 : tiles[tiles.length].xDist + 1;
+		
+		let tmpPath = [];
+		for (let i = 0; i < nTiles; i++) {
+			tmpPath.push(new tile(null, null, startDistance, 0));
+			startDistance++;
 		}
-		else {
-			//Add path to tiles
-			this.tiles += this.createPath(nTiles, this.tiles[this.tiles.length]);
-		}	
-	}
-
-	// Prepend a number of tiles in a straight line
-	prependPath(nTiles) {
-		if (this.tiles.length === 0) {
-			this.tiles = this.createPath(nTiles);
-		}
-		else {
-			this.tiles.splice(0, 0, this.createPath(nTiles, null, this.tiles[0]));
-			//tiles.push(...createPath(nTiles, null, tiles[0]));
-		}
+		
+		this.setPrevious(tmpPath);
+		this.setNext(tmpPath);
+		
+		tiles[tiles.length].nextTiles.push(tmpPath[0]);
+		tmpPath[0].previousTiles.push(tiles[tiles.length]);
+		
+		this.tiles += tmpPath;
 	}
 	
-	// Append a junction
-	// example: [3, 6] would give
-	// *
-	// |\  \
-	// | | |
-	// |/  |
-	// *  /
-	// | /  
-	// |/
-	// *
-	
-	createJunction(branchLengths) {
-		// Get first tile
-		let junctionTile = tiles[tiles.length]
+	// Append a junction to the main path
+	appendJunction(branchLengths) {
+		let prevTile = tiles.length == 0 ? null : tiles[tiles.length];
+		let startDistance = prevTile == null ? 0 : tiles[tiles.length].xDist + 1;		
+		
 		let maxLength = 0;
-		// Get highest path length
-		for(let i = 0; i < branchLengths.length; i++) {
+		
+		// Get highest branch length
+		for (let i = 0; i < branchLengths.length; i++) {
 			if (branchLengths[i] > maxLength) {
 				maxLength = branchLengths[i];
 			}
 		}
-		// Append main path till the end of the longest branch
-		this.appendPath(maxLength);
 		
-		// 
-		for (let i = 0; i < branchLengths.length; i++) {
-			let tmpTile = junctionTile;
-			for (let j = 0; j < branchLengths[i]; j++) {
-				tmpTile = tmpTile.nextTiles[0];
-			}
-			this.tiles += this.createPath(nTiles, junctionTile, tmpTile);
+		// Extend main path until it is as long as the longest branch
+		//----------------------------------------------------------------//
+		let tmpPath = [];
+		let tmpDist = 0;
+		
+		for (let i = 0; i < nTiles; i++) {
+			tmpPath.push(new tile(null, null, startDistance + tmpDist));
+			tmpDist++;
 		}
+		
+		this.setPrevious(tmpPath);
+		this.setNext(tmpPath);
+		
+		tiles[tiles.length].nextTiles.push(tmpPath[0]);
+		tmpPath[0].previousTiles.push(tiles[tiles.length]);
+		
+		this.tiles += tmpPath;
+		//----------------------------------------------------------------//
+		
+		
+		
+		// Create branches
+		//----------------------------------------------------------------//
+		for (let i = 0; i < branchLengths.length; i++) {
+			let tmpPath = [];
+			let xPos = startDistance;
+			let endTile = prevTile;
+			
+			for (let j = 0; j < branchLengths[i]; j++) {
+				let yPos = 0;
+				
+				yPos = -math.floor(branchLength / 2) + j;
+				// Amount of branches is even
+				if (branchLengths.length % 2 == 0 && yPos >= 0) {
+					yPos++;
+				}
+				
+				tmpPath.push(new tile(null, null, xPos, yPos));
+				xPos++;
+				endTile = endTile.nextTiles[0];
+			}
+			
+			this.setPrevious(tmpPath);
+			this.setNext(tmpPath);
+			
+			//First element of branch and element it connects to
+			prevTile.nextTiles.push(tmpPath[0]);
+			tmpPath[0].previousTiles.push(prevTile);
+			
+			//Last element of branch and element it connects to
+			tmpPath[tmpPath.length].nextTiles.push(endTile);
+			endTile.previousTiles.push(mpPath[tmpPath.length]);
+			
+			this.tiles += tmpPath;
+		}
+		//----------------------------------------------------------------//
 	}
 
-	// Create a board for n amount of tiles
+	// Creates the board
 	createBoard() {
 		this.appendPath(5);
-		this.createJunction([3,6]);
+		this.appendJunction([3,6]);
 		this.appendPath(7);
-		this.createJunction([5,4,8]);
+		this.appendJunction([5,4,8]);
 		this.appendPath(3);
 	}
 	
+	// Called whenever a player changes position
 	updatePlayerPosition(player, tile) {
 		player.currentTile = tile;
 		game.sendMessageToAll('updatePosition', player, tile);
 	}
 	
+	// Move a player by amount
 	movePlayer(player, amount) {
 		let func = amount > 0 ? movePlayerForward : movePlayerBack;
 		func(player, amount);
 		player.currentTile.tileUpdate();
 	}
 	
+	// Move player back by an amount
 	movePlayerBack(player, amount) {
 		for(let i = 0; i > amount; i--) {
 			if (player.currentTile.isStartTile) {
@@ -126,6 +134,7 @@ class Board {
 		}
 	}
 	
+	// Move player forward by an amount
 	movePlayerForward(player, amount) {
 		for(let i = 0; i < game.rollDice(); i++) {
 			if (player.currentTile.isJunction) {	
@@ -143,6 +152,7 @@ class Board {
 		}	
 	}
 	
+	// Move a player to the start
 	jumpToStart(player) {
 		this.updatePlayerPosition(player, this.tiles[0]);
 	}
