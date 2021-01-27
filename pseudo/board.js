@@ -3,6 +3,10 @@ class Board {
 		this.game = game;
 		this.tiles = [];
 		createBoard(boardLength);
+		
+		this.tileWidth = 10;
+		this.tileHeight = 10;
+		this.totalTiles = 0;
 	}
 	
 	createPath(nTiles, prevTile, nextTile) {

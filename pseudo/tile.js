@@ -1,11 +1,17 @@
 // TODO: generate grid coordinates based on neighbour tiles
 // Every tile is one space on the grid, calculate coordinates accordingly
 class Tile {
-	constructor(specialFunction) {
+	constructor(specialFunction, color, xPos, yPos, width, height) {
 		this.nextTiles = [];
 		this.previousTiles = [];
 		this.players = [];
 		this.specialFunction = specialFunction;
+		this.color = color;
+		
+		this.xPos = xPos;
+		this.yPos = yPos;
+		this.width = width;
+		this.height = height;
 	}
 	
 	isJunction() {
