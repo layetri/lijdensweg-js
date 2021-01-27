@@ -31,16 +31,11 @@ class Board {
 	appendPath(nTiles) {
 		//let path;
 		if (tiles.length == 0) {
-			//path = createPath(nTiles);
 			tiles = createPath(nTiles);
 		}
 		else {
-			//path = createPath(nTiles, path[path.length]);
-			//let origPathLength = path.length;
 			//Add path to tiles
 			tiles.push(...createPath(nTiles, tiles[tiles.length]));
-			//tiles[origPathLength].nextTiles.push(tiles[origPathLength + 1]);
-			//tiles[origPathLength + 1].previousTiles.push(tiles[origPathLength]);
 		}	
 	}
 	
@@ -49,25 +44,13 @@ class Board {
 			tiles = createPath(nTiles);
 		}
 		else {
-			tiles.push(...createPath(nTiles, null, tiles[0]));
+			tiles.splice(0, 0, ...createPath(nTiles, null, tiles[0]));
+			//tiles.push(...createPath(nTiles, null, tiles[0]));
 		}
 	}
 	
 	createBoard(nTiles) {
-		appendPath(20);
-		
-		
-		//Create tiles
-		/*for (let i = 0; i <  nTiles; i++) {
-			tiles.push(new Tile(null));
-		}*/
-		/*
-		setPrevious();
-		setNext();	
-		
-		for (let i = 0; i < game.players.length; i++) {
-			jumpToStart(game.players[i]);
-		}*/
+		appendPath(nTiles);
 	}
 	
 	updatePlayerPosition(player, tile) {
@@ -84,7 +67,10 @@ class Board {
 	movePlayerBack(player, amount) {
 		for(let i = 0; i > amount; i--) {
 			if (player.currentTile.isStartTile) {
-				
+				return;
+			}
+			else {
+				updatePlayerPosition(player, player.currentTile.previousTiles[0]
 			}
 		}
 	}
