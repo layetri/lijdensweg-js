@@ -1,8 +1,8 @@
 class Board {
-	constructor(game, boardLength) {
+	constructor(game) {
 		this.game = game;
 		this.tiles = [];
-		this.createBoard(boardLength);
+		this.createBoard();
 		
 		this.tileWidth = 10;
 		this.tileHeight = 10;
@@ -60,10 +60,48 @@ class Board {
 			//tiles.push(...createPath(nTiles, null, tiles[0]));
 		}
 	}
+	
+	// Append a junction
+	// example: [3, 6] would give
+	// *
+	// |\  \
+	// | | |
+	// |/  |
+	// *  /
+	// | /  
+	// |/
+	// *
+	
+	createJunction(branchLengths) {
+		// Get first tile
+		let junctionTile = tiles[tiles.length]
+		let maxLength = 0;
+		// Get highest path length
+		for(let i = 0; i < branchLengths.length; i++) {
+			if (branchLengths[i] > maxLength) {
+				maxLength = branchLengths[i];
+			}
+		}
+		// Append main path till the end of the longest branch
+		this.appendPath(maxLength);
+		
+		// 
+		for (let i = 0; i < branchLengths.length; i++) {
+			let tmpTile = junctionTile;
+			for (let j = 0; j < branchLengths[i]; j++) {
+				tmpTile = tmpTile.nextTiles[0];
+			}
+			this.tiles += this.createPath(nTiles, junctionTile, tmpTile);
+		}
+	}
 
 	// Create a board for n amount of tiles
-	createBoard(nTiles) {
-		this.appendPath(nTiles);
+	createBoard() {
+		this.appendPath(5);
+		this.createJunction([3,6]);
+		this.appendPath(7);
+		this.createJunction([5,4,8]);
+		this.appendPath(3);
 	}
 	
 	updatePlayerPosition(player, tile) {
