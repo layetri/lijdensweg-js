@@ -9,6 +9,14 @@ export default class Board {
     this.tileHeight = 10
   }
 
+  // Fill function transforms the received data into objects and fills the local board array
+  fill(board) {
+    for(let i = 0; i < board.length; i++) {
+      let obj = Object.assign(new Tile, board[i]);
+      this.tiles.push(obj);
+    }
+  }
+
   // Append the main path by an amount
   appendPath(nTiles) {
     let prevTile = this.tiles.length === 0 ? null : this.tiles[this.tiles.length - 1];
@@ -27,7 +35,6 @@ export default class Board {
       this.tiles[this.tiles.length - 1].nextTiles.push(tmpPath[0].uuid);
       tmpPath[0].previousTiles.push(this.tiles[this.tiles.length - 1].uuid);
     }
-    console.log(tmpPath);
 
     this.tiles = this.tiles.concat(tmpPath);
   }
@@ -89,9 +96,6 @@ export default class Board {
 
         tmpPath.push(new Tile(null, null, xPos, yPos));
         xPos++;
-
-        // EndTile is the related tile in the main path!!!
-
       }
 
       let endTile = tmpPath.find(t => {

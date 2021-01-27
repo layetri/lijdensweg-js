@@ -41,6 +41,11 @@ export default class Game {
     this.board.createBoard();
   }
 
+  loadBoard(board) {
+    this.board = new Board(this);
+    this.board.fill(board);
+  }
+
   generateOrder() {
     let order = [];
     let arr = [];
@@ -79,7 +84,7 @@ export default class Game {
     this.player.infection = 0;
     this.player.cards = [];
 
-    this.board.jumpToStart();
+    //this.board.jumpToStart();
   }
 
   nextTurn() {
@@ -148,7 +153,7 @@ export default class Game {
     this.nextTurn();
   }
 
-  sendMessageToAll(messageType, data) {
+  sendMessageToAll(messageType, data = []) {
     /*
       Events:
       - startGame

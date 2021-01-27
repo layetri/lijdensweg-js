@@ -52,13 +52,13 @@
       <button class="text-lg py-2 px-4 bg-blue-400 text-white rounded-lg shadow" v-if="game.player.play_order === game.order_number" @click="game.endTurn()">Klaar</button>
 
       <div class="w-full fixed bottom-0 left-0">
-        <div class="w-2/3 mx-auto">
+        <div class="w-3/4 mx-auto">
           <div class="w-1/2 flex float-left">
             <infection-meter class="w-1/2" :amount="game.player.infection"></infection-meter>
             <insanity-meter class="w-1/2" :amount="game.player.insanity"></insanity-meter>
           </div>
 
-          <div class="w-1/4 flex" id="inventoryRow">
+          <div class="w-1/2 flex" id="inventoryRow">
             <item v-for="item in game.player.items" :key="game.player.items.indexOf(item)" :item="item" @use="game.player.useItem(item.name)" @buy="game.player.buy(1, item)"></item>
           </div>
         </div>
@@ -200,7 +200,8 @@
       // Load the board from the API
       loadBoard() {
         axios.get('/fetch/board/'+this.room).then(res => {
-          this.game.loadBoard(res.data.board);
+          console.log(res.data);
+          this.game.loadBoard(res.data);
         });
       },
       // Update the username and broadcast change to lobby

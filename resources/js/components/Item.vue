@@ -1,10 +1,12 @@
 <template>
-  <div class="p-2 flex-auto m-2 rounded-lg shadow text-white" :class="[isRed ? 'bg-red-500' : [item.amount > 0 ? 'bg-blue-500' : 'bg-blue-300']]">
-    <span class="cursor-pointer" @click="use()">
-      <img :src="'/assets/items/'+item.icon+'.svg'" alt="">
-      {{item.name}} <small>{{item.amount}}</small>
-    </span>
-    <span class="cursor-pointer" @click="buy()">get</span>
+  <div class="flex-auto m-2 rounded-lg shadow text-white" :class="[isRed ? 'bg-red-500' : [item.amount > 0 ? 'bg-blue-500' : 'bg-blue-300']]">
+    <div class="relative">
+      <img @click="use()" :src="'/assets/items/'+item.icon+'.svg'" class="w-full cursor-pointer" alt="">
+      <div class="absolute w-full text-center bottom-0 rounded-b-lg z-10 bg-gray-600 bg-opacity-50">
+        <small class="text-lg font-bold">{{item.amount}}</small>
+        <span class="cursor-pointer text-gray-100 font-light text-sm" @click="buy()">get</span>
+      </div>
+    </div>
   </div>
 </template>
 
