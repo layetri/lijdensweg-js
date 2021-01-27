@@ -2,10 +2,12 @@ import Player from './Player';
 
 export default class LocalPlayer extends Player {
   constructor(name, id, connection, local) {
+    // TODO: implement money
     super(name, id);
     this.connection = connection;
     this.local = local;
     this.cards = [];
+    this.card = null;
   }
 
   async sendMessage(messageType, data) {

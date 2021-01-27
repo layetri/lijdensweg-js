@@ -101,6 +101,10 @@
             this.game.playerJoins(player);
           }).leaving((player) => {
             this.game.playerLeaves(player);
+            if(this.game.allPlayers.length < 2) {
+              this.game.returnToLobby();
+              this.started = false;
+            }
           });
       this.game.joinGame(this.connection);
 
@@ -143,13 +147,14 @@
       },
       initGame() {
         axios.get('/generate/board/'+this.room).then(res => {
-          console.log(res.data);
           let order = this.game.startGame();
           this.startGame(order);
         });
       },
       startGame(order) {
         // Assign play order to players
+        this.game.reset();
+
         for(let i = 0; i < order.length; i++) {
           let plyr = this.game.allPlayers.find(player => {
             return player.id === order[i].id
@@ -161,6 +166,7 @@
         // Load game board from API
         this.loadBoard();
         this.started = true;
+        this.game.nextTurn();
 
         setInterval(() => {
           if(this.game.player.infection < 100) {

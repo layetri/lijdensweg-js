@@ -35,7 +35,6 @@ export default class Game {
   }
 
   startGame() {
-    //this.activePlayers = this.allPlayers.shuffle();
     let order = [];
     let arr = [];
 
@@ -62,6 +61,18 @@ export default class Game {
 
   }
 
+  reset() {
+    // Reset global game vars
+    this.turn_number = 0;
+    this.order_number = 0;
+    this.activePlayers = [];
+
+    // Reset player vars
+    this.player.insanity = 0;
+    this.player.infection = 0;
+    this.player.cards = [];
+  }
+
   nextTurn() {
     // TODO: implement timeout for player turn
     // TODO: limit turn action to current active player only
@@ -72,51 +83,53 @@ export default class Game {
 
     this.activePlayers.push(player);
 
-
     if(player.id === this.player.id) {
       this.startTurn(player);
     }
-
   }
 
   startTurn() {
     let dice = this.rollDice();
-    let currentTile = player.currentTile;
+    let currentTile = this.player.currentTile;
 
     this.player.sendMessage('yourTurn');
     this.player.sendMessage('rollDice', {dice: dice}).then();
 
-    this.player.sendMessage('chooseCard').then((response) => {
-      if (response.type === 'pickedCard') {
-        this.player.giveCard(this.getRandomCard())
-      }
+    // this.player.sendMessage('chooseCard').then((response) => {
+    //   if (response.type === 'pickedCard') {
+    //     this.player.giveCard(this.getRandomCard())
+    //   }
+    // });
+    let turn = Math.floor(this.turn_number / this.allPlayers.length) + 1;
+    axios.get('/fetch/card?sanity='+this.player.insanity+'&turn_number='+turn+'&stack='+JSON.stringify(this.player.cards)).then(res => {
+      console.log(res.data);
+      this.player.card = res.data;
+      this.player.cards.push(res.data.card.id);
     });
 
     //wait for response
 
-    for (let i = 0; i < dice; i++) {
-      if (currentTile.isJunction) {
-        this.player.sendMessage('chooseNextTile').then((response) => {
-          //wait for response
-          currentTile = response;
-        });
-      } else {
-        currentTile = currentTile.nextTiles[0];
-      }
-
-      this.player.movePlayer(player, currentTile);
-      if (currentTile.isEndTile) {
-        this.endTurn(player);
-        return;
-      }
-    }
+    // for (let i = 0; i < dice; i++) {
+    //   if (currentTile.isJunction) {
+    //     this.player.sendMessage('chooseNextTile').then((response) => {
+    //       //wait for response
+    //       currentTile = response;
+    //     });
+    //   } else {
+    //     currentTile = currentTile.nextTiles[0];
+    //   }
+    //
+    //   this.player.movePlayer(player, currentTile);
+    //   if (currentTile.isEndTile) {
+    //     this.endTurn(player);
+    //     return;
+    //   }
+    // }
 
     currentTile.tileUpdate();
   }
 
-  endTurn(player = this.player) {
-    console.log(player);
-    console.log(this.player);
+  endTurn(player = this.activePlayers[0]) {
     if(player.id === this.player.id) {
       this.activePlayers.splice(this.activePlayers.indexOf(player), 1);
 
@@ -124,12 +137,14 @@ export default class Game {
       this.sendMessageToAll('playerFinished', {player: player.id});
       this.turn_number++;
       this.order_number = this.turn_number % this.allPlayers.length;
+      this.nextTurn();
     }
   }
 
   handleEndOfTurn() {
     this.turn_number++;
     this.order_number = this.turn_number % this.allPlayers.length;
+    this.nextTurn();
   }
 
   sendMessageToAll(messageType, data) {

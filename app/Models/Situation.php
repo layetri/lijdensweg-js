@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Situation extends Model
 {
     use HasFactory;
+
+    public function options() {
+      return $this->hasMany(SituationOption::class);
+    }
 }
