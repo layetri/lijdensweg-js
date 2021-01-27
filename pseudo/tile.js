@@ -1,3 +1,5 @@
+// TODO: generate grid coordinates based on neighbour tiles
+// Every tile is one space on the grid, calculate coordinates accordingly
 class Tile {
 	constructor(specialFunction) {
 		this.nextTiles = [];
