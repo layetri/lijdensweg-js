@@ -10,6 +10,10 @@ class Tile {
 		return this.nextTiles.length > 1;
 	}
 	
+	isStartTile() {
+		return this.previousTiles.length < 1;
+	}
+	
 	isEndTile() {
 		return this.nextTiles.length < 1;
 	}
