@@ -1,5 +1,6 @@
 import Player from './Player';
 import LocalPlayer from './LocalPlayer';
+import Board from './Board';
 
 export default class Game {
   constructor(user, room, localConnection) {
@@ -13,7 +14,7 @@ export default class Game {
     this.local = localConnection;
     this.user = user;
     this.room = room;
-    this.board = [];
+    this.board = null;
 
     // Keep track of turns
     this.turn_number = 0;
@@ -35,11 +36,12 @@ export default class Game {
     this.allPlayers.splice(this.allPlayers.indexOf(player), 1);
   }
 
-  makeBoard(board) {
-
+  makeBoard() {
+    this.board = new Board(this);
+    this.board.createBoard();
   }
 
-  startGame() {
+  generateOrder() {
     let order = [];
     let arr = [];
 
@@ -53,13 +55,11 @@ export default class Game {
       order.push({id: this.allPlayers[i].id, order: num});
     }
 
-    this.sendMessageToAll('startGame', {startOrder: order});
-    // while(this.activePlayers.length > 0) {
-    //   this.nextTurn();
-    // }
-    // this.endGame();
-
     return order;
+  }
+
+  startGame() {
+    this.sendMessageToAll('startGame', {startOrder: order});
   }
 
   endGame() {
@@ -76,6 +76,8 @@ export default class Game {
     this.player.insanity = 0;
     this.player.infection = 0;
     this.player.cards = [];
+
+    this.board.jumpToStart();
   }
 
   nextTurn() {
@@ -158,19 +160,15 @@ export default class Game {
     return Math.round(Math.random() * 5) + 1;
   }
 
-  performCardAction(data) {
+  performAction(data) {
     let actions = JSON.parse(data.action);
-    // Action format: [who, what, how much]
+    // Action format: [who, what, how much, (optional: item)]
     for(let i = 0; i < actions.length; i++) {
       let action = actions[i];
 
       if(['current', 'all'].includes(action[0])) {
         // Handle different values to increase
-        if(action[1] === 'infection') {
-          this.player.increaseInfection(Number(action[2]));
-        } else if(action[1] === 'insanity') {
-          this.player?.increaseInsanity(Number(action[2]));
-        }
+        this.player.handleAction(action);
         // Handle broadcast to other players
         if(action[0] === 'all') {
           this.sendMessageToAll('increase'+action[1].capitalize(), action[2]);

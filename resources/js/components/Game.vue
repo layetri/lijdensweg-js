@@ -30,7 +30,8 @@
     </div>
 
 <!--  Game main screen  -->
-    <div v-else>
+    <div class="container mx-auto" v-else>
+      <h1 class="text-2xl font-bold p-2">&euro;{{game.player.money}}</h1>
       <div class="w-1/4 p-4 bg-white border-gray-100 shadow rounded-lg">
         <b>Spelers in deze kamer</b>
         <div class="my-4">
@@ -50,10 +51,16 @@
       <card v-if="game.player.card !== null" :card="game.player.card" @perform="performCardAction"></card>
       <button class="text-lg py-2 px-4 bg-blue-400 text-white rounded-lg shadow" v-if="game.player.play_order === game.order_number" @click="game.endTurn()">Klaar</button>
 
-      <div class="w-full fixed bottom-0">
-        <div class="w-1/2 flex mx-auto">
-          <infection-meter class="w-1/2" :amount="game.player.infection"></infection-meter>
-          <insanity-meter class="w-1/2" :amount="game.player.insanity"></insanity-meter>
+      <div class="w-full fixed bottom-0 left-0">
+        <div class="w-2/3 mx-auto">
+          <div class="w-1/2 flex float-left">
+            <infection-meter class="w-1/2" :amount="game.player.infection"></infection-meter>
+            <insanity-meter class="w-1/2" :amount="game.player.insanity"></insanity-meter>
+          </div>
+
+          <div class="w-1/4 flex" id="inventoryRow">
+            <item v-for="item in game.player.items" :key="game.player.items.indexOf(item)" :item="item" @use="game.player.useItem(item.name)" @buy="game.player.buy(1, item)"></item>
+          </div>
         </div>
       </div>
     </div>
@@ -122,14 +129,16 @@
         - changedUsername
        */
         this.connection.listenForWhisper('startGame', data => {
+          // Start local game with received player order
           this.startGame(data.startOrder);
         }).listenForWhisper('playerFinished', data => {
-          console.log('player finished their turn');
-          console.log(data);
+          // Handle the end of another player's turn
           this.game.handleEndOfTurn();
         }).listenForWhisper('receivedChat', data => {
+          // Handle incoming chat messages
           console.log(data);
         }).listenForWhisper('changedUsername', data => {
+          // Update the local username to reflect changes
           let user = this.game.allPlayers.findIndex(player => {
             return player.id === data.id;
           });
@@ -138,7 +147,6 @@
         });
       },
       handleUIThread() {
-
         this.localBus.$on('rollDice', data => {
           this.dice = data.dice;
           setTimeout(() => {
@@ -146,12 +154,25 @@
           }, 2000);
         });
       },
+      // Initialize the game [only ran on initial client]
       initGame() {
-        axios.get('/generate/board/'+this.room).then(res => {
-          let order = this.game.startGame();
+        // Generate a board
+        this.game.makeBoard();
+        // Post the board data to the API
+        axios.post('/set/board', {
+          room: this.room,
+          board: JSON.stringify(this.game.board.tiles)
+        }).then(res => {
+          console.log(res);
+          // Generate player order
+          let order = this.game.generateOrder();
+          // Send the start command to all clients
+          this.game.startGame();
+          // Start the game with current order
           this.startGame(order);
         });
       },
+      // Start the game [ran on all clients]
       startGame(order) {
         // Reset the local game state
         this.game.reset();
@@ -168,13 +189,16 @@
         this.loadBoard();
         // Switch to playing state
         this.started = true;
+        // Run the turn content
         this.game.nextTurn();
       },
+      // Load the board from the API
       loadBoard() {
         axios.get('/fetch/board/'+this.room).then(res => {
-          this.game.makeBoard(res.data.board);
+          this.game.loadBoard(res.data.board);
         });
       },
+      // Update the username and broadcast change to lobby
       updateUsername() {
         axios.post('/set/username', {
           name: this.user.name
@@ -184,8 +208,9 @@
           this.editUsername = false;
         });
       },
+      // Handle the action for a Card
       performCardAction(data) {
-        this.game.performCardAction(data);
+        this.game.performAction(data);
       }
     },
     destroyed() {

@@ -11,6 +11,10 @@ export default class Player {
   increaseInfection(amount = 1) {
     if(this.infection + amount <= 100 && this.infection + amount >= 0) {
       this.infection += amount;
+    } else if(this.infection + amount > 100) {
+      this.infection = 100;
+    } else if(this.infection + amount < 0) {
+      this.infection = 0;
     }
   }
 

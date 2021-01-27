@@ -22,14 +22,10 @@ Route::get('/', [RoomController::class, 'knock']);
 // Join a room
 Route::post('join', [RoomController::class, 'checkIn']);
 
-// Group generate functions together
-Route::prefix('generate')->group(function() {
-  Route::get('board/{room}', [BoardController::class, 'generateBoard']);
-});
-
 // Group set functions together
 Route::prefix('set')->group(function() {
   Route::post('username', [RoomController::class, 'changeNickname']);
+  Route::post('board', [BoardController::class, 'storeBoard']);
 });
 
 // Group fetch functions together
