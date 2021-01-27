@@ -13,6 +13,7 @@ export default class Game {
     this.local = localConnection;
     this.user = user;
     this.room = room;
+    this.board = [];
 
     // Keep track of turns
     this.turn_number = 0;
@@ -32,6 +33,10 @@ export default class Game {
 
   playerLeaves(player) {
     this.allPlayers.splice(this.allPlayers.indexOf(player), 1);
+  }
+
+  makeBoard(board) {
+
   }
 
   startGame() {
@@ -95,14 +100,8 @@ export default class Game {
     this.player.sendMessage('yourTurn');
     this.player.sendMessage('rollDice', {dice: dice}).then();
 
-    // this.player.sendMessage('chooseCard').then((response) => {
-    //   if (response.type === 'pickedCard') {
-    //     this.player.giveCard(this.getRandomCard())
-    //   }
-    // });
     let turn = Math.floor(this.turn_number / this.allPlayers.length) + 1;
     axios.get('/fetch/card?sanity='+this.player.insanity+'&turn_number='+turn+'&stack='+JSON.stringify(this.player.cards)).then(res => {
-      console.log(res.data);
       this.player.card = res.data;
       this.player.cards.push(res.data.card.id);
     });
@@ -126,15 +125,13 @@ export default class Game {
     //   }
     // }
 
-    currentTile.tileUpdate();
+    //currentTile.tileUpdate();
   }
 
-  endTurn(player = this.activePlayers[0]) {
-    if(player.id === this.player.id) {
-      this.activePlayers.splice(this.activePlayers.indexOf(player), 1);
-
+  endTurn() {
+    if(this.order_number === this.player.play_order) {
       this.player.sendMessage('turnEnd');
-      this.sendMessageToAll('playerFinished', {player: player.id});
+      this.sendMessageToAll('playerFinished', {player: this.player.id});
       this.turn_number++;
       this.order_number = this.turn_number % this.allPlayers.length;
       this.nextTurn();
@@ -161,7 +158,26 @@ export default class Game {
     return Math.round(Math.random() * 5) + 1;
   }
 
-  getRandomCard() {
+  performCardAction(data) {
+    let actions = JSON.parse(data.action);
+    // Action format: [who, what, how much]
+    for(let i = 0; i < actions.length; i++) {
+      let action = actions[i];
 
+      if(['current', 'all'].includes(action[0])) {
+        // Handle different values to increase
+        if(action[1] === 'infection') {
+          this.player.increaseInfection(Number(action[2]));
+        } else if(action[1] === 'insanity') {
+          this.player?.increaseInsanity(Number(action[2]));
+        }
+        // Handle broadcast to other players
+        if(action[0] === 'all') {
+          this.sendMessageToAll('increase'+action[1].capitalize(), action[2]);
+        }
+      }
+    }
+
+    this.player.card = null;
   }
 }

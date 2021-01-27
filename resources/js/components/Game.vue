@@ -47,6 +47,7 @@
       </div>
 
       <board></board>
+      <card v-if="game.player.card !== null" :card="game.player.card" @perform="performCardAction"></card>
       <button class="text-lg py-2 px-4 bg-blue-400 text-white rounded-lg shadow" v-if="game.player.play_order === game.order_number" @click="game.endTurn()">Klaar</button>
 
       <div class="w-full fixed bottom-0">
@@ -152,9 +153,10 @@
         });
       },
       startGame(order) {
-        // Assign play order to players
+        // Reset the local game state
         this.game.reset();
 
+        // Assign play order to players
         for(let i = 0; i < order.length; i++) {
           let plyr = this.game.allPlayers.find(player => {
             return player.id === order[i].id
@@ -162,34 +164,15 @@
           plyr.play_order = order[i].order;
         }
         // Countdown from 3
-        // Switch to playing state
         // Load game board from API
         this.loadBoard();
+        // Switch to playing state
         this.started = true;
         this.game.nextTurn();
-
-        setInterval(() => {
-          if(this.game.player.infection < 100) {
-            this.game.player.increaseInfection(10);
-          } else {
-            this.game.player.increaseInfection(-100);
-          }
-        }, 500);
-        //
-        // setInterval(() => {
-        //   if(this.game.player.insanity < 50) {
-        //     this.game.player.increaseInsanity(10);
-        //   } else {
-        //     this.game.player.increaseInsanity(-100);
-        //   }
-        // }, 500);
-
-        // this.game.player.infection = Math.round(Math.random() * 100);
-        this.game.player.insanity = -50;
       },
       loadBoard() {
         axios.get('/fetch/board/'+this.room).then(res => {
-          this.board = new Board(res.data.board);
+          this.game.makeBoard(res.data.board);
         });
       },
       updateUsername() {
@@ -200,6 +183,9 @@
           this.game.allPlayers[0].name = this.user.name;
           this.editUsername = false;
         });
+      },
+      performCardAction(data) {
+        this.game.performCardAction(data);
       }
     },
     destroyed() {
