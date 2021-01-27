@@ -129,12 +129,15 @@
         - changedUsername
        */
         this.connection.listenForWhisper('startGame', data => {
-          // Start local game with received player order
-          this.startGame(data.startOrder);
+          // Start local game
+          this.startGame();
+        }).listenForWhisper('orderPlayers', data => {
+          // Order the local players with the received player order
+          this.orderPlayers(data.startOrder);
         }).listenForWhisper('playerFinished', data => {
           // Handle the end of another player's turn
           this.game.handleEndOfTurn();
-        }).listenForWhisper('receivedChat', data => {
+        }).listenForWhisper('newChat', data => {
           // Handle incoming chat messages
           console.log(data);
         }).listenForWhisper('changedUsername', data => {
@@ -162,21 +165,18 @@
         axios.post('/set/board', {
           room: this.room,
           board: JSON.stringify(this.game.board.tiles)
-        }).then(res => {
-          console.log(res);
-          // Generate player order
+        }).then(() => {
+          // Generate player order and order players accordingly
           let order = this.game.generateOrder();
+          this.orderPlayers(order);
           // Send the start command to all clients
           this.game.startGame();
-          // Start the game with current order
-          this.startGame(order);
+          // Start the game
+          this.startGame();
         });
       },
-      // Start the game [ran on all clients]
-      startGame(order) {
-        // Reset the local game state
-        this.game.reset();
-
+      // Order local players [ran on all clients]
+      orderPlayers(order) {
         // Assign play order to players
         for(let i = 0; i < order.length; i++) {
           let plyr = this.game.allPlayers.find(player => {
@@ -184,6 +184,11 @@
           });
           plyr.play_order = order[i].order;
         }
+      },
+      // Start the game [ran on all clients]
+      startGame() {
+        // Reset the local game state
+        this.game.reset();
         // Countdown from 3
         // Load game board from API
         this.loadBoard();

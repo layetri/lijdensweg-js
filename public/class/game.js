@@ -55,11 +55,13 @@ export default class Game {
       order.push({id: this.allPlayers[i].id, order: num});
     }
 
+    this.sendMessageToAll('orderPlayers', {startOrder: order});
+
     return order;
   }
 
   startGame() {
-    this.sendMessageToAll('startGame', {startOrder: order});
+    this.sendMessageToAll('startGame');
   }
 
   endGame() {
