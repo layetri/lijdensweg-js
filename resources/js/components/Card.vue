@@ -5,6 +5,8 @@
       <img src="/assets/card.svg" class="z-0 w-full h-auto ml-2" alt="">
       <div class="h-auto p-12 pt-8 absolute inset-0 flex flex-col">
         <div class="bg-white rounded-lg p-4 shadow-xl">
+          <img :src="'/assets/situations/'+(Number(card.card.id) + 1)+'.png'" class="mb-2" alt="">
+
           <h4 class="text-lg font-bold">{{card.card.description}}</h4>
         </div>
 

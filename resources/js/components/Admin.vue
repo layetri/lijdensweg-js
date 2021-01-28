@@ -81,8 +81,8 @@ export default {
       axios.post('/admin/situation', {
         situation: this.newSituation
       }).then(res => {
-        //this.situations.push(res.data);
-        //this.newSituation = {description: null, min_turn: 1, options: []};
+        this.situations.push(res.data);
+        this.newSituation = {description: null, min_turn: 1, options: []};
       });
     }
   }
