@@ -1,12 +1,18 @@
 <template>
   <div class="fixed flex inset-0 z-10 w-full h-full bg-black bg-opacity-60" id="cardBox">
-    <div class="w-1/4 m-auto p-12 card">
-      <div class="bg-white rounded-lg p-4 shadow-xl">
-        {{card.card.description}}
-      </div>
+<!--    <div class="h-full w-full z-0 card"></div>-->
+    <div class="relative card m-auto">
+      <img src="/assets/card.svg" class="z-0 w-full h-auto ml-2" alt="">
+      <div class="h-auto p-12 pt-8 absolute inset-0 flex flex-col">
+        <div class="bg-white rounded-lg p-4 shadow-xl">
+          <h4 class="text-lg font-bold">{{card.card.description}}</h4>
+        </div>
 
-      <div @click="choose(option)" class="cursor-pointer p-4 bg-white border border-gray-100 shadow-xl rounded-lg mt-4" v-for="option in card.options">
-        {{option.description}}
+        <div class="flex-auto"></div>
+
+        <div @click="choose(option)" class="text-sm cursor-pointer bottom-12 p-4 bg-white shadow-xl rounded-lg mt-4 bg-opacity-50 hover:bg-opacity-70" v-for="option in card.options">
+          {{option.description}}
+        </div>
       </div>
     </div>
   </div>
@@ -34,8 +40,7 @@ export default {
 
 <style scoped>
   .card {
-    background-image: url("../../../public/assets/card.svg");
-    background-repeat: no-repeat;
-    background-size: cover;
+    width: 33.333333%;
+    max-width: 400px;
   }
 </style>

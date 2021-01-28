@@ -59,7 +59,7 @@
       <direction-picker :directions="game.player.currentTile.nextTiles.length" v-if="game.junctionFlag" @pick="setDirection"></direction-picker>
 
       <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="diceFace !== null">
-        <img :src="'/assets/dice/'+diceFace+'.png'" class="m-auto w-1/2 h-auto">
+        <img :src="'/assets/dice/'+diceFace+'.png'" class="m-auto w-1/4 h-auto">
       </div>
 
       <card v-if="game.player.card !== null" :card="game.player.card" @perform="performCardAction"></card>
