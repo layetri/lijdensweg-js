@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Situation;
+use App\Models\SituationOption;
 use Illuminate\Http\Request;
 
 class SituationController extends Controller
@@ -23,5 +24,30 @@ class SituationController extends Controller
       } else {
         return response('Not enough arguments to function. Requires turn_number, stack and sanity.', 500);
       }
+    }
+
+    public function loadAll() {
+      return Situation::get();
+    }
+
+    public function make(Request $request) {
+      $s = $request->input('situation');
+
+      $situation = Situation::create([
+        'description' => $s['description'],
+        'min_progress' => $s['min_turn']
+      ]);
+
+      foreach($s['options'] as $option) {
+        SituationOption::create([
+           'situation_id' => $situation->id,
+           'description' => $option['description'],
+           'min_sanity' => $option['sanity'][0],
+           'max_sanity' => $option['sanity'][1],
+           'action' => $option['action']
+        ]);
+      }
+
+      return $situation;
     }
 }

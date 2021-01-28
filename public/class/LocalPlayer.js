@@ -25,7 +25,7 @@ export default class LocalPlayer extends Player {
 
   earn(amount) {
     this.money += amount;
-    this.sendMessage('earnMoney', amount);
+    this.sendMessage('modMoney', amount);
   }
 
   gift(amount, item) {
@@ -34,15 +34,17 @@ export default class LocalPlayer extends Player {
     }).amount += amount;
   }
 
-  buy(amount, item) {
+  buy(amount, it) {
+    let item = this.items.find(itm => {
+      return itm.name === it;
+    });
+
     if(this.money - (amount*item.price) >= 0) {
       this.money -= (amount*item.price);
-      this.sendMessage('spendMoney', amount * item.price);
-      this.gift(amount, item);
+      this.sendMessage('modMoney', -1 * amount * item.price);
+      this.gift(amount, item.name);
     } else {
-      this.sendMessage('insufficientFunds').then(r => {
-        console.log(r);
-      });
+      this.sendMessage('insufficientFunds').then();
     }
   }
 
@@ -65,7 +67,7 @@ export default class LocalPlayer extends Player {
     } else if(action[1] === 'insanity') {
       this.increaseInsanity(Number(action[2]));
     } else if(action[1] === 'move') {
-      this.move(Number(action[2]));
+      this.movePlayer(Number(action[2]));
     } else if(action[1] === 'money') {
       this.earn(Number(action[2]));
     } else if(action[1] === 'item') {
@@ -114,7 +116,10 @@ export default class LocalPlayer extends Player {
     - giveCard
     - useCard
 
-    -
+    - yourTurn
+    - beenInfected
+    - modMoney *
+    - insufficientFunds
      */
     this.local.$emit(messageType, data);
 

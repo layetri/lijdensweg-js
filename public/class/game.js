@@ -6,7 +6,6 @@ export default class Game {
   constructor(user, room, localConnection) {
     // Keep track of players
     this.allPlayers = [];
-    this.activePlayers = [];
     this.player = null;
 
     // Store all the important bits
@@ -90,7 +89,6 @@ export default class Game {
     // Reset global game vars
     this.turn_number = 0;
     this.order_number = 0;
-    this.activePlayers = [];
 
     // Reset player vars
     this.player.insanity = 0;
@@ -113,17 +111,11 @@ export default class Game {
   }
 
   nextTurn() {
-    // TODO: implement timeout for player turn
-    // TODO: limit turn action to current active player only
+    this.turn_number++;
+    this.order_number = this.turn_number % this.allPlayers.length;
 
-    let player = this.allPlayers.find(player => {
-      return player.play_order === this.order_number;
-    });
-
-    this.activePlayers.push(player);
-
-    if(player.id === this.player.id) {
-      this.startTurn(player);
+    if(this.order_number === this.player.play_order) {
+      this.player.sendMessage('yourTurn');
     }
   }
 
@@ -163,7 +155,6 @@ export default class Game {
       }, 750);
     }
 
-    this.player.sendMessage('yourTurn').then();
     this.player.sendMessage('rollDice', {dice: dice, callback: cb}).then();
     this.player.earn(5);
   }
@@ -172,16 +163,8 @@ export default class Game {
     if(this.order_number === this.player.play_order) {
       this.player.sendMessage('turnEnd').then(() => {});
       this.sendMessageToAll('playerFinished', {player: this.player.id});
-      this.turn_number++;
-      this.order_number = this.turn_number % this.allPlayers.length;
       this.nextTurn();
     }
-  }
-
-  handleEndOfTurn() {
-    this.turn_number++;
-    this.order_number = this.turn_number % this.allPlayers.length;
-    this.nextTurn();
   }
 
   sendMessageToAll(messageType, data = []) {

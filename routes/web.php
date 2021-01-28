@@ -37,3 +37,12 @@ Route::prefix('fetch')->group(function() {
   Route::get('card', [SituationController::class, 'takeOne']);
   Route::get('dice', [GameController::class, 'rollDice']);
 });
+
+Route::prefix('admin')->middleware(['admin'])->group(function() {
+  Route::get('/', function() {
+    return view('admin');
+  });
+
+  Route::get('situations', [SituationController::class, 'loadAll']);
+  Route::post('situation', [SituationController::class, 'make']);
+});

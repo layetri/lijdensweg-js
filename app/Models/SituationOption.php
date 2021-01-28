@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class SituationOption extends Model
 {
     use HasFactory;
+
+    protected $fillable = ['description', 'situation_id', 'min_sanity', 'max_sanity', 'action'];
 }

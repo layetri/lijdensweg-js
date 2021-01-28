@@ -9,6 +9,8 @@ class Situation extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['description', 'min_progress'];
+
     public function options() {
       return $this->hasMany(SituationOption::class);
     }

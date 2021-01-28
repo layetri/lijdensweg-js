@@ -34,8 +34,14 @@
       <div class="fixed z-10 top-6 left-6 w-1/5">
         <div class="w-full p-4">
           <div class="w-full p-4 pb-12 bg-gray-50 border-gray-100 shadow rounded-lg flex">
-            <div class="text-2xl font-bold p-2 flex-auto">
-              &euro;{{game.player.money}}
+            <div class="flex-auto flex items-center">
+              <h2 class="text-2xl font-black p-2">
+                &euro;{{game.player.money}}
+              </h2>
+
+              <h5 class="text-lg font-bold" :class="[moneyMutation > 0 ? 'text-green-500' : 'text-red-500']" v-if="moneyMutation !== null">
+                <span v-if="moneyMutation > 0">+</span><span v-else>-</span>&euro;{{moneyMutation > 0 ? moneyMutation : moneyMutation * -1}}
+              </h5>
             </div>
             <div>
               <img :src="'/assets/dice/'+dice+'.png'" style="height: 50px; width: 50px;" v-if="diceFace === null">
@@ -56,17 +62,30 @@
       </div>
 
       <board :board="game.board" :players="game.allPlayers"></board>
+
+<!--   Direction Selector UI element   -->
       <direction-picker :directions="game.player.currentTile.nextTiles.length" v-if="game.junctionFlag" @pick="setDirection"></direction-picker>
 
+<!--   Dice UI element   -->
       <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="diceFace !== null">
         <img :src="'/assets/dice/'+diceFace+'.png'" class="m-auto w-1/4 h-auto">
       </div>
 
+<!--   Card UI element   -->
       <card v-if="game.player.card !== null" :card="game.player.card" @perform="performCardAction"></card>
 
+<!--   Start of Turn UI element   -->
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="yourTurn">
+        <h1 class="text-9xl font-black text-white m-auto">Je bent aan de beurt!</h1>
+      </div>
+
       <div class="w-full fixed bottom-0 left-0">
-        <div class="w-3/4 mx-auto rounded-t-xl bg-white shadow-xl p-4">
-          <div class="w-1/2 flex float-left">
+        <div class="w-3/4 mx-auto rounded-t-xl bg-white shadow-xl p-4 flex items-center">
+          <button class="p-2 bg-blue-400 rounded-lg shadow diceBtn" v-if="game.player.play_order === game.order_number" @click="game.startTurn()">
+            <img src="/assets/items/dice.svg" class="w-full cursor-pointer" alt="">
+          </button>
+
+          <div class="w-1/2 flex">
             <infection-meter class="w-1/2" :amount="game.player.infection"></infection-meter>
             <insanity-meter class="w-1/2" :amount="game.player.insanity"></insanity-meter>
           </div>
@@ -99,10 +118,11 @@
         connection: null,
         started: false,
         dice: null,
-        diceFace: 5,
-        animations: {dice: null},
+        diceFace: null,
+        animations: {dice: null, moneyMut: null, yourTurn: null},
 
         yourTurn: false,
+        moneyMutation: null
       }
     },
     created() {
@@ -152,7 +172,7 @@
           this.orderPlayers(data.startOrder);
         }).listenForWhisper('playerFinished', data => {
           // Handle the end of another player's turn
-          this.game.handleEndOfTurn();
+          this.game.nextTurn();
         }).listenForWhisper('performAction', data => {
           // Handle actions that affect multiple players
           this.game.performAction(data);
@@ -188,6 +208,24 @@
               }, 2000);
             }
           }, 50);
+        });
+
+        this.localBus.$on('modMoney', data => {
+          clearTimeout(this.animations.moneyMut);
+          this.moneyMutation = data;
+
+          this.animations.moneyMut = setTimeout(() => {
+            this.moneyMutation = null
+          }, 2000);
+        });
+
+        this.localBus.$on('yourTurn', () => {
+          clearTimeout(this.animations.yourTurn);
+          this.yourTurn = true;
+
+          this.animations.yourTurn = setTimeout(() => {
+            this.yourTurn = false
+          }, 2000);
         });
       },
       // Initialize the game [only ran on initial client]
@@ -271,5 +309,9 @@
   #gameContainer {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .diceBtn {
+    max-width: 4rem;
   }
 </style>

@@ -12,6 +12,7 @@ Vue.component('infection-meter', require('./components/InfectionMeter.vue').defa
 Vue.component('insanity-meter', require('./components/InsanityMeter.vue').default);
 Vue.component('dialog-box', require('./components/DialogBox.vue').default);
 Vue.component('direction-picker', require('./components/DirectionPicker.vue').default);
+Vue.component('admin', require('./components/Admin.vue').default);
 
 new Vue({
   el: "#app"

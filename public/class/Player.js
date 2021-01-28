@@ -21,6 +21,8 @@ export default class Player {
   movePlayer(amount) {
     amount > 0 ? this.movePlayerForward(amount) : this.movePlayerBack(amount);
     this.currentTile.tileUpdate();
+
+    document.getElementById("gameContainer").scrollLeft = this.currentTile.xDist > 2 ? (this.currentTile.xDist * 200) - 400 : 0;
   }
 
   // Move player back by an amount
@@ -30,7 +32,7 @@ export default class Player {
         return;
       }
       else {
-        this.updatePlayerPosition(this.currentTile.previousTiles[0]);
+        this.updatePlayerPosition(this.game.board.find(this.currentTile.previousTiles[0]));
       }
     }
   }
@@ -38,17 +40,17 @@ export default class Player {
   // Move player forward by an amount
   movePlayerForward(amount) {
     for(let i = 0; i < amount; i++) {
-      if (this.currentTile.isJunction) {
+      if (this.currentTile.isJunction()) {
         this.sendMessage('chooseNextTile').then((response) => {
           this.updatePlayerPosition(response);
         });
       }
       else {
-        this.updatePlayerPosition(this.currentTile.nextTiles[0]);
+        this.updatePlayerPosition(this.game.board.find(this.currentTile.nextTiles[0]));
       }
 
-      if (this.currentTile.isEndTile) {
-        this.game.playerFinished(player);
+      if (this.currentTile.isEndTile()) {
+        this.game.playerFinished(this);
       }
     }
   }
