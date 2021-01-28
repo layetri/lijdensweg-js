@@ -8,13 +8,17 @@ export default class LocalPlayer extends Player {
     this.cards = [];
     this.card = null;
 
-    this.money = 100;
+    this.vaccined = false;
+    this.skipTurns = 0;
+    this.infected = 0;
+
+    this.money = 10;
     this.items = [
-      {name: 'mondkapje', icon: 'face_mask', amount: 0, price: 10, buyable: true, actions: [['current', 'infection', -10]]},
-      {name: 'desinfectiegel', icon: 'sanitizer', amount: 0, price: 10, buyable: true, actions: [['', '', 1]]},
-      {name: 'toiletpapier', icon: 'toilet_paper', amount: 0, price: 10, buyable: true, actions: [['', '', 1]]},
-      {name: 'treinkaartje', icon: 'train_ticket', amount: 0, price: 10, buyable: false, actions: [['', '', 1]]},
-      {name: 'vaccin', icon: 'vaccine', amount: 0, price: 10, buyable: false, actions: [['', '', 1]]},
+      {name: 'mondkapje', icon: 'face_mask', amount: 0, price: 10, buyable: true, actions: [['current', 'infection', -5]]},
+      {name: 'desinfectiegel', icon: 'sanitizer', amount: 0, price: 15, buyable: true, actions: [['', '', -10]]},
+      {name: 'toiletpapier', icon: 'toilet_paper', amount: 0, price: 20, buyable: true, actions: [['others', 'insanity', 5]]},
+      {name: 'treinkaartje', icon: 'train_ticket', amount: 0, price: 50, buyable: false, actions: [['current', 'move', 4]]},
+      {name: 'vaccin', icon: 'vaccine', amount: 0, price: 50, buyable: false, actions: [['current', 'vaccinate']]},
       //{name: '', icon: '', amount: 0, price: 10, buyable: true, actions: [['', '', 1]]},
     ];
   }
@@ -32,7 +36,7 @@ export default class LocalPlayer extends Player {
   buy(amount, item) {
     if(this.money - (amount*item.price) >= 0) {
       this.money -= (amount*item.price);
-      this.gift(amount, item.name);
+      this.gift(amount, item);
     } else {
       this.sendMessage('insufficientFunds').then(r => {
         console.log(r);
@@ -64,6 +68,34 @@ export default class LocalPlayer extends Player {
       this.earn(Number(action[2]));
     } else if(action[1] === 'item') {
       this.gift(Number(action[2]), action[3]);
+    } else if(action[1] === 'buy') {
+      this.buy(Number(action[2]), action[3]);
+    } else if(action[1] === 'vaccinate') {
+      this.vaccined = true;
+    }
+  }
+
+  increaseInfection(amount = 1) {
+    if(!this.vaccined) {
+      if (this.infection + amount <= 100 && this.infection + amount >= 0) {
+        this.infection += amount;
+      } else if (this.infection + amount > 100) {
+        this.infection = 100;
+      } else if (this.infection + amount < 0) {
+        this.infection = 0;
+      }
+
+      if(this.infection === 100) {
+        this.skipTurns = 2;
+        this.infected++;
+        this.sendMessage('beenInfected');
+      }
+    }
+  }
+
+  increaseInsanity(amount = 1) {
+    if(this.insanity + amount <= 50 && this.insanity + amount >= -50) {
+      this.insanity += amount;
     }
   }
 

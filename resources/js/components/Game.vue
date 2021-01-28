@@ -58,7 +58,7 @@
           </div>
 
           <div class="w-1/2 flex" id="inventoryRow">
-            <item v-for="item in game.player.items" :key="game.player.items.indexOf(item)" :item="item" @use="game.player.useItem(item.name)" @buy="game.player.buy(1, item)"></item>
+            <item v-for="item in game.player.items" :key="game.player.items.indexOf(item)" :item="item" @use="game.player.useItem(item.name)" @buy="game.player.buy(1, item.name)"></item>
           </div>
         </div>
       </div>
@@ -136,6 +136,9 @@
         }).listenForWhisper('playerFinished', data => {
           // Handle the end of another player's turn
           this.game.handleEndOfTurn();
+        }).listenForWhisper('performAction', data => {
+          // Handle actions that affect multiple players
+          this.game.performAction(data);
         }).listenForWhisper('newChat', data => {
           // Handle incoming chat messages
           console.log(data);
@@ -216,6 +219,7 @@
       // Handle the action for a Card
       performCardAction(data) {
         this.game.performAction(data);
+        this.game.endTurn();
       }
     },
     destroyed() {

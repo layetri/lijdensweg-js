@@ -84,7 +84,7 @@ export default class Game {
     this.player.infection = 0;
     this.player.cards = [];
 
-    //this.board.jumpToStart();
+    this.player.jumpToStart();
   }
 
   nextTurn() {
@@ -109,32 +109,26 @@ export default class Game {
     this.player.sendMessage('yourTurn').then();
     this.player.sendMessage('rollDice', {dice: dice}).then();
 
-    let turn = Math.floor(this.turn_number / this.allPlayers.length) + 1;
-    axios.get('/fetch/card?sanity='+this.player.insanity+'&turn_number='+turn+'&stack='+JSON.stringify(this.player.cards)).then(res => {
-      this.player.card = res.data;
-      this.player.cards.push(res.data.card.id);
-    });
+    for (let i = 0; i < dice; i++) {
+      if (currentTile.isJunction) {
+        this.player.sendMessage('chooseNextTile').then((response) => {
+          //wait for response
+          currentTile = response;
+        });
+      } else {
+        currentTile = currentTile.nextTiles[0];
+      }
 
-    //wait for response
+      this.player.movePlayer(player, currentTile);
+      if (currentTile.isEndTile) {
+        this.endTurn(player);
+        return;
+      }
+    }
 
-    // for (let i = 0; i < dice; i++) {
-    //   if (currentTile.isJunction) {
-    //     this.player.sendMessage('chooseNextTile').then((response) => {
-    //       //wait for response
-    //       currentTile = response;
-    //     });
-    //   } else {
-    //     currentTile = currentTile.nextTiles[0];
-    //   }
-    //
-    //   this.player.movePlayer(player, currentTile);
-    //   if (currentTile.isEndTile) {
-    //     this.endTurn(player);
-    //     return;
-    //   }
-    // }
+    currentTile.tileUpdate();
 
-    //currentTile.tileUpdate();
+    this.pickCard();
   }
 
   endTurn() {
@@ -167,8 +161,21 @@ export default class Game {
     return Math.round(Math.random() * 5) + 1;
   }
 
+  pickCard() {
+    let turn = Math.floor(this.turn_number / this.allPlayers.length) + 1;
+    axios.get('/fetch/card?sanity='+this.player.insanity+'&turn_number='+turn+'&stack='+JSON.stringify(this.player.cards)).then(res => {
+      this.player.card = res.data;
+      this.player.cards.push(res.data.card.id);
+    });
+  }
+
   performAction(data) {
-    let actions = JSON.parse(data.action);
+    let actions;
+    if(data.action.length > 0) {
+      actions = JSON.parse(data.action);
+    } else {
+      actions = data;
+    }
     // Action format: [who, what, how much, (optional: item)]
     for(let i = 0; i < actions.length; i++) {
       let action = actions[i];
@@ -178,8 +185,10 @@ export default class Game {
         this.player.handleAction(action);
         // Handle broadcast to other players
         if(action[0] === 'all') {
-          this.sendMessageToAll('increase'+action[1].capitalize(), action[2]);
+          this.sendMessageToAll('performAction', action);
         }
+      } else if(action[0] === 'others') {
+        this.sendMessageToAll('performAction', action);
       }
     }
 
