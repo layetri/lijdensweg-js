@@ -11,6 +11,7 @@ Vue.component('item', require('./components/Item.vue').default);
 Vue.component('infection-meter', require('./components/InfectionMeter.vue').default);
 Vue.component('insanity-meter', require('./components/InsanityMeter.vue').default);
 Vue.component('dialog-box', require('./components/DialogBox.vue').default);
+Vue.component('direction-picker', require('./components/DirectionPicker.vue').default);
 
 new Vue({
   el: "#app"

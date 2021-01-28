@@ -5,7 +5,7 @@
   </head>
 
   <body>
-    <div id="app" class="bg-blue-50 h-full">
+    <div id="app" class="bg-blue-50 h-full overflow-hidden">
       <game-container></game-container>
     </div>
 

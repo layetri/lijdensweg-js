@@ -30,28 +30,42 @@
     </div>
 
 <!--  Game main screen  -->
-    <div class="container mx-auto overflow-auto h-full" v-else>
-      <h1 class="text-2xl font-bold p-2">&euro;{{game.player.money}}</h1>
-      <div class="w-1/4 p-4 bg-white border-gray-100 shadow rounded-lg">
-        <b>Spelers in deze kamer</b>
-        <div class="my-4">
-          <div :class="[player.play_order === game.order_number ? 'font-bold' : 'text-gray-700']" v-for="player in game.allPlayers">
-            {{player.name}} <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
+    <div class="container mx-auto overflow-auto h-full" id="gameContainer" v-else>
+      <div class="fixed z-10 top-6 left-6 w-1/5">
+        <div class="w-full p-4">
+          <div class="w-full p-4 pb-12 bg-gray-50 border-gray-100 shadow rounded-lg flex">
+            <div class="text-2xl font-bold p-2 flex-auto">
+              &euro;{{game.player.money}}
+            </div>
+            <div>
+              <img :src="'/assets/dice/'+dice+'.png'" style="height: 50px; width: 50px;" v-if="diceFace === null">
+            </div>
+          </div>
+        </div>
+
+
+        <div style="margin-top: -4rem;" class="w-full p-4 bg-white border-gray-100 shadow-lg rounded-lg">
+          <b>Spelers in deze kamer</b>
+          <div class="my-4">
+            <div :class="[[player.play_order === game.order_number ? 'font-bold' : 'text-gray-700'], 'text-'+player.color+'-500']" v-for="player in game.allPlayers">
+              {{player.name}}
+              <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="text-9xl font-bold" v-if="dice !== null">
-        {{dice}}
+      <board :board="game.board" :players="game.allPlayers"></board>
+      <direction-picker :directions="game.player.currentTile.nextTiles.length" v-if="game.junctionFlag" @pick="setDirection"></direction-picker>
+
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="diceFace !== null">
+        <img :src="'/assets/dice/'+diceFace+'.png'" class="m-auto w-1/2 h-auto">
       </div>
 
-      <board :board="game.board"></board>
-
       <card v-if="game.player.card !== null" :card="game.player.card" @perform="performCardAction"></card>
-      <button class="text-lg py-2 px-4 bg-blue-400 text-white rounded-lg shadow" v-if="game.player.play_order === game.order_number" @click="game.endTurn()">Klaar</button>
 
       <div class="w-full fixed bottom-0 left-0">
-        <div class="w-3/4 mx-auto">
+        <div class="w-3/4 mx-auto rounded-t-xl bg-white shadow-xl p-4">
           <div class="w-1/2 flex float-left">
             <infection-meter class="w-1/2" :amount="game.player.infection"></infection-meter>
             <insanity-meter class="w-1/2" :amount="game.player.insanity"></insanity-meter>
@@ -85,6 +99,9 @@
         connection: null,
         started: false,
         dice: null,
+        diceFace: 5,
+        animations: {dice: null},
+
         yourTurn: false,
       }
     },
@@ -154,9 +171,23 @@
       handleUIThread() {
         this.localBus.$on('rollDice', data => {
           this.dice = data.dice;
-          setTimeout(() => {
-            this.dice = null;
-          }, 2000);
+          this.diceFace = 1;
+          this.game.animationBusy = true;
+
+          let cnt = 0;
+          this.animations.dice = setInterval(() => {
+            if(cnt < 50) {
+              this.diceFace = Math.round(Math.random() * 5) + 1;
+              cnt++;
+            } else {
+              clearInterval(this.animations.dice);
+              this.diceFace = this.dice;
+              setTimeout(() => {
+                this.diceFace = null;
+                data.callback();
+              }, 2000);
+            }
+          }, 50);
         });
       },
       // Initialize the game [only ran on initial client]
@@ -189,22 +220,19 @@
       },
       // Start the game [ran on all clients]
       startGame() {
-        // Reset the local game state
-        this.game.reset();
-        // Countdown from 3
         // Load game board from API
-        this.loadBoard();
-        // Switch to playing state
-        this.started = true;
-        // Run the turn content
-        this.game.nextTurn();
-      },
-      // Load the board from the API
-      loadBoard() {
         axios.get('/fetch/board/'+this.room).then(res => {
-          console.log(res.data);
           this.game.loadBoard(res.data);
+          // Reset the local game state
+          this.game.reset();
+          // Countdown from 3
+          // ...
+          // Switch to playing state
+          this.started = true;
+          // Run the turn content
+          this.game.nextTurn();
         });
+
       },
       // Update the username and broadcast change to lobby
       updateUsername() {
@@ -220,6 +248,12 @@
       performCardAction(data) {
         this.game.performAction(data);
         this.game.endTurn();
+      },
+      // Set the user-picked direction
+      setDirection(direction) {
+        this.game.chosenTile = direction;
+        this.game.junctionFlag = false;
+        this.game.pauseMoving = false;
       }
     },
     destroyed() {
@@ -230,5 +264,12 @@
 </script>
 
 <style scoped>
+  #gameContainer::-webkit-scrollbar {
+    display: none;
+  }
 
+  #gameContainer {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 </style>

@@ -1,8 +1,8 @@
 import Player from './Player';
 
 export default class LocalPlayer extends Player {
-  constructor(name, id, connection, local) {
-    super(name, id);
+  constructor(name, id, game, connection, local) {
+    super(name, id, game);
     this.connection = connection;
     this.local = local;
     this.cards = [];
@@ -25,6 +25,7 @@ export default class LocalPlayer extends Player {
 
   earn(amount) {
     this.money += amount;
+    this.sendMessage('earnMoney', amount);
   }
 
   gift(amount, item) {
@@ -36,6 +37,7 @@ export default class LocalPlayer extends Player {
   buy(amount, item) {
     if(this.money - (amount*item.price) >= 0) {
       this.money -= (amount*item.price);
+      this.sendMessage('spendMoney', amount * item.price);
       this.gift(amount, item);
     } else {
       this.sendMessage('insufficientFunds').then(r => {

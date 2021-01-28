@@ -19,16 +19,22 @@ export default class Game {
     // Keep track of turns
     this.turn_number = 0;
     this.order_number = 0;
+    this.dice_int = 0;
+
+    this.animationBusy = false;
+    this.pauseMoving = false;
+    this.chosenTile = null;
+    this.junctionFlag = false;
   }
 
   joinGame(connection) {
-    this.player = new LocalPlayer(this.user.name, this.user.id, connection, this.local);
+    this.player = new LocalPlayer(this.user.name, this.user.id, this, connection, this.local);
     this.allPlayers.push(this.player);
     this.connection = connection;
   }
 
   playerJoins(player) {
-    let instance =  new Player(player.name, player.id);
+    let instance =  new Player(player.name, player.id, this);
     this.allPlayers.push(instance);
   }
 
@@ -65,6 +71,13 @@ export default class Game {
     return order;
   }
 
+  // Wait for an animation to finish
+  wait() {
+    do {
+      // Wait until animation is over
+    } while(this.animationBusy);
+  }
+
   startGame() {
     this.sendMessageToAll('startGame');
   }
@@ -83,6 +96,18 @@ export default class Game {
     this.player.insanity = 0;
     this.player.infection = 0;
     this.player.cards = [];
+
+    let colors = ['blue', 'green', 'yellow', 'red', 'pink', 'purple'];
+    for(let i = 0; i < this.allPlayers.length; i++) {
+      let color = 'grey';
+      do {
+        color = colors[Math.floor(Math.random() * 6)];
+      } while(this.allPlayers.filter(p => {
+        return p.color === color
+      }).length > 0);
+
+      this.allPlayers[i].color = color;
+    }
 
     this.player.jumpToStart();
   }
@@ -104,31 +129,43 @@ export default class Game {
 
   startTurn() {
     let dice = this.rollDice();
-    let currentTile = this.player.currentTile;
 
-    this.player.sendMessage('yourTurn').then();
-    this.player.sendMessage('rollDice', {dice: dice}).then();
+    let cb = () => {
+      let i = 0;
+      let currentTile = this.player.currentTile;
 
-    for (let i = 0; i < dice; i++) {
-      if (currentTile.isJunction) {
-        this.player.sendMessage('chooseNextTile').then((response) => {
-          //wait for response
-          currentTile = response;
-        });
-      } else {
-        currentTile = currentTile.nextTiles[0];
-      }
+      this.dice_int = setInterval(() => {
+        if(!this.pauseMoving) {
+          if (i < dice) {
+            if (currentTile.isJunction() && i <= dice - 1) {
+              if(this.chosenTile !== null) {
+                // Fill in the user selected tile
+                currentTile = this.board.find(currentTile.nextTiles[this.chosenTile]);
+              } else {
+                this.junctionFlag = true;
+                this.pauseMoving = true;
+              }
+            } else {
+              currentTile = this.board.find(currentTile.nextTiles[0]);
+            }
 
-      this.player.movePlayer(player, currentTile);
-      if (currentTile.isEndTile) {
-        this.endTurn(player);
-        return;
-      }
+            if(!this.pauseMoving) {
+              document.getElementById("gameContainer").scrollLeft = currentTile.xDist > 2 ? (currentTile.xDist * 200) - 400 : 0;
+              this.player.updatePlayerPosition(currentTile);
+              i++;
+            }
+          } else {
+            clearInterval(this.dice_int);
+            currentTile.tileUpdate();
+            this.pickCard();
+          }
+        }
+      }, 750);
     }
 
-    currentTile.tileUpdate();
-
-    this.pickCard();
+    this.player.sendMessage('yourTurn').then();
+    this.player.sendMessage('rollDice', {dice: dice, callback: cb}).then();
+    this.player.earn(5);
   }
 
   endTurn() {

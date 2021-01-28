@@ -26,6 +26,13 @@ export default class Board {
     })[0];
   }
 
+  // Find tile for given UUID
+  find(id) {
+    return this.tiles.find(t => {
+      return t.uuid === id;
+    });
+  }
+
   // Append the main path by an amount
   appendPath(nTiles) {
     let prevTile = this.tiles.length === 0 ? null : this.findLast();
@@ -145,53 +152,6 @@ export default class Board {
     this.appendPath(7);
     this.appendJunction([5,4,8]);
     this.appendPath(3);
-  }
-
-  // Called whenever a player changes position
-  updatePlayerPosition(player, tile) {
-    player.currentTile = tile;
-    game.sendMessageToAll('updatePosition', player, tile);
-  }
-
-  // Move a player by amount
-  movePlayer(player, amount) {
-    amount > 0 ? this.movePlayerForward(amount) : this.movePlayerBack(amount);
-    player.currentTile.tileUpdate();
-  }
-
-  // Move player back by an amount
-  movePlayerBack(player, amount) {
-    for(let i = 0; i > amount; i--) {
-      if (player.currentTile.isStartTile) {
-        return;
-      }
-      else {
-        this.updatePlayerPosition(player, player.currentTile.previousTiles[0]);
-      }
-    }
-  }
-
-  // Move player forward by an amount
-  movePlayerForward(player, amount) {
-    for(let i = 0; i < amount; i++) {
-      if (player.currentTile.isJunction) {
-        player.sendMessage('chooseNextTile').then((response) => {
-          this.updatePlayerPosition(player, response);
-        });
-      }
-      else {
-        this.updatePlayerPosition(player, player.currentTile.nextTiles[0]);
-      }
-
-      if (player.currentTile.isEndTile) {
-        this.game.playerFinished(player);
-      }
-    }
-  }
-
-  // Move a player to the start
-  jumpToStart(player) {
-    this.updatePlayerPosition(player, this.tiles[0]);
   }
 
   // Insert previous direct neighbours for every tile in a path
