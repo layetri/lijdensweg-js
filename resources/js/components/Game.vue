@@ -30,7 +30,7 @@
     </div>
 
 <!--  Game main screen  -->
-    <div class="container mx-auto" v-else>
+    <div class="container mx-auto overflow-auto h-full" v-else>
       <h1 class="text-2xl font-bold p-2">&euro;{{game.player.money}}</h1>
       <div class="w-1/4 p-4 bg-white border-gray-100 shadow rounded-lg">
         <b>Spelers in deze kamer</b>
@@ -39,15 +39,14 @@
             {{player.name}} <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
           </div>
         </div>
-
-        <button class="text-sm py-2 px-4 bg-blue-400 text-white rounded-lg shadow">Nodig vrienden uit</button>
       </div>
 
       <div class="text-9xl font-bold" v-if="dice !== null">
         {{dice}}
       </div>
 
-      <board></board>
+      <board :board="game.board"></board>
+
       <card v-if="game.player.card !== null" :card="game.player.card" @perform="performCardAction"></card>
       <button class="text-lg py-2 px-4 bg-blue-400 text-white rounded-lg shadow" v-if="game.player.play_order === game.order_number" @click="game.endTurn()">Klaar</button>
 

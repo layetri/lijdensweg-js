@@ -3,7 +3,7 @@
 import { v4 as uuid } from 'uuid';
 
 export default class Tile {
-  constructor(specialFunction, color, xDist, yDist) {
+  constructor(specialFunction, color, xDist, yDist, isMainBranch) {
     this.uuid = uuid();
     this.nextTiles = [];
     this.previousTiles = [];
@@ -13,6 +13,7 @@ export default class Tile {
 
     this.xDist = xDist;
     this.yDist = yDist;
+    this.main = isMainBranch;
   }
 
   isJunction() {

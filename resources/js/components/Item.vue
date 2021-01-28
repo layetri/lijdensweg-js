@@ -4,7 +4,7 @@
       <img @click="use()" :src="'/assets/items/'+item.icon+'.svg'" class="w-full cursor-pointer" alt="">
       <div class="absolute w-full text-center bottom-0 rounded-b-lg z-10 bg-gray-600 bg-opacity-50">
         <small class="text-lg font-bold">{{item.amount}}</small>
-        <span class="cursor-pointer text-gray-100 font-light text-sm" @click="buy()">get</span>
+        <span class="cursor-pointer text-gray-100 font-light text-sm" @click="buy()">koop</span>
       </div>
     </div>
   </div>

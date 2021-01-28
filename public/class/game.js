@@ -106,7 +106,7 @@ export default class Game {
     let dice = this.rollDice();
     let currentTile = this.player.currentTile;
 
-    this.player.sendMessage('yourTurn');
+    this.player.sendMessage('yourTurn').then();
     this.player.sendMessage('rollDice', {dice: dice}).then();
 
     let turn = Math.floor(this.turn_number / this.allPlayers.length) + 1;
@@ -139,7 +139,7 @@ export default class Game {
 
   endTurn() {
     if(this.order_number === this.player.play_order) {
-      this.player.sendMessage('turnEnd');
+      this.player.sendMessage('turnEnd').then(() => {});
       this.sendMessageToAll('playerFinished', {player: this.player.id});
       this.turn_number++;
       this.order_number = this.turn_number % this.allPlayers.length;

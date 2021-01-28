@@ -17,14 +17,23 @@ export default class Board {
     }
   }
 
+  // Find last tile in path
+  findLast() {
+    return this.tiles.filter(itm => {
+      return itm.main;
+    }).sort((a,b) => {
+      return b.xDist - a.xDist
+    })[0];
+  }
+
   // Append the main path by an amount
   appendPath(nTiles) {
-    let prevTile = this.tiles.length === 0 ? null : this.tiles[this.tiles.length - 1];
-    let startDistance = prevTile == null ? 0 : this.tiles[this.tiles.length - 1].xDist + 1;
+    let prevTile = this.tiles.length === 0 ? null : this.findLast();
+    let startDistance = prevTile === null ? 0 : prevTile.xDist + 1;
 
     let tmpPath = [];
     for (let i = 0; i < nTiles; i++) {
-      tmpPath.push(new Tile(null, null, startDistance, 0));
+      tmpPath.push(new Tile(null, 'red', startDistance, 0, true));
       startDistance++;
     }
 
@@ -32,8 +41,8 @@ export default class Board {
     this.setNext(tmpPath);
 
     if(this.tiles.length > 0) {
-      this.tiles[this.tiles.length - 1].nextTiles.push(tmpPath[0].uuid);
-      tmpPath[0].previousTiles.push(this.tiles[this.tiles.length - 1].uuid);
+      prevTile.nextTiles.push(tmpPath[0].uuid);
+      tmpPath[0].previousTiles.push(prevTile.uuid);
     }
 
     this.tiles = this.tiles.concat(tmpPath);
@@ -41,8 +50,8 @@ export default class Board {
 
   // Append a junction to the main path
   appendJunction(branchLengths) {
-    let prevTile = this.tiles.length === 0 ? null : this.tiles[this.tiles.length - 1];
-    let startDistance = prevTile === null ? 0 : this.tiles[this.tiles.length - 1].xDist + 1;
+    let prevTile = this.tiles.length === 0 ? null : this.findLast();
+    let startDistance = prevTile === null ? 0 : prevTile.xDist + 1;
 
     let maxLength = 0;
 
@@ -53,13 +62,19 @@ export default class Board {
       }
     }
 
+    // Sort the branches by length
+    let branches = branchLengths.sort((a,b) => {
+      return b - a;
+    });
+    let yPositions = [1, -1, 2, -2, 3, -3];
+
     // Extend main path until it is as long as the longest branch
     //----------------------------------------------------------------//
     let tmpPath = [];
     let tmpDist = 0;
 
-    for (let i = 0; i < maxLength; i++) {
-      tmpPath.push(new Tile(null, null, startDistance + tmpDist));
+    for (let i = 0; i < branches[0]; i++) {
+      tmpPath.push(new Tile(null, 'blue', startDistance + tmpDist, 0, true));
       tmpDist++;
     }
 
@@ -68,8 +83,8 @@ export default class Board {
       this.setNext(tmpPath);
 
       if (this.tiles.length > 1) {
-        this.tiles[this.tiles.length - 1].nextTiles.push(tmpPath[0].uuid);
-        tmpPath[0].previousTiles.push(this.tiles[this.tiles.length - 1].uuid);
+        prevTile.nextTiles.push(tmpPath[0].uuid);
+        tmpPath[0].previousTiles.push(prevTile.uuid);
       }
 
       this.tiles = this.tiles.concat(tmpPath);
@@ -80,21 +95,26 @@ export default class Board {
 
     // Create branches
     //----------------------------------------------------------------//
-    for (let i = 0; i < branchLengths.length; i++) {
+    for (let i = 0; i < branches.length; i++) {
       let tmpPath = [];
       let xPos = startDistance;
-      //let endTile = prevTile.uuid;
+      let yPos = yPositions[i];
 
-      for (let j = 0; j < branchLengths[i]; j++) {
-        let yPos = 0;
+      for (let j = 0; j < branches[i]; j++) {
+        // let yPos = 0;
+        //
+        // // Rework
+        // // branch 1 => yPos 1
+        // // branch 2 => yPos -1
+        // // branch 3 => yPos 2
+        // yPos = -1 * Math.floor(i / 2) + j;
+        // // Amount of branches is even
+        // if (branches.length % 2 === 0 && yPos >= 0) {
+        //   yPos++;
+        // }
 
-        yPos = -1 * Math.floor(branchLengths[i] / 2) + j;
-        // Amount of branches is even
-        if (branchLengths.length % 2 === 0 && yPos >= 0) {
-          yPos++;
-        }
 
-        tmpPath.push(new Tile(null, null, xPos, yPos));
+        tmpPath.push(new Tile(null, 'yellow', xPos - 1, yPos, false));
         xPos++;
       }
 
