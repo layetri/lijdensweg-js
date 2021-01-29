@@ -1,9 +1,16 @@
 <template>
   <div class="tileContainer" @click="status = true" :class="[tile.type+'-p', player.currentTile.uuid === tile.uuid ? 'border-2 border-blue-400' : '']">
     <div class="tile h-full w-full p-2" :class="[tile.type+'-b', ['startTile', 'finishTile'].includes(tile.type) ? 'bg-'+tile.color+'-500 border-'+tile.color+'-700 white-text' : 'bg-'+tile.color+'-100 border-'+tile.color+'-500']">
-      <span>{{tile.xDist}}, {{tile.yDist}} <b>[{{tile.type}}]</b></span><br>
-      <div v-for="person in tile.players">
-        {{person.name}}
+<!--      <span>{{tile.xDist}}, {{tile.yDist}} <b>[{{tile.type}}]</b></span><br>-->
+      <div class="flex h-full">
+        <div class="grid m-auto" :class="'grid-cols-'+wrapNumber()">
+          <div v-for="person in tile.players" class="text-center w-max py-3 px-auto">
+            <div class="player-orb shadow-lg mx-auto flex z-10" :class="'bg-'+person.color+'-500'">
+              <img class="m-auto h-3/4 w-3/4" src="/assets/items/virus.svg" alt="">
+            </div>
+            <span class="text-sm p-1 rounded bg-black bg-opacity-50 text-white">{{person.name}}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -22,12 +29,20 @@
       }
     },
     methods: {
-
+      wrapNumber() {
+        return this.tile.players.length > 3 ? Math.floor(this.tile.players.length / 2) : this.tile.players.length;
+      }
     }
   }
 </script>
 
 <style scoped>
+  .player-orb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
   .tileContainer {
     width: 200px;
     height: 200px;

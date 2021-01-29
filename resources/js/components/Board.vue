@@ -7,8 +7,6 @@
         :tile="tile"
         class="tile"
         :style="{top: ((200 * tile.yDist) + 300)+'px', left: (200 * tile.xDist)+'px'}"></tile>
-
-    <div v-for="player in players" class="player" :class="'bg-'+player.color+'-500'"></div>
   </div>
 </template>
 
@@ -25,12 +23,6 @@ export default {
 <style scoped>
   #boardContainer {
     position: relative;
-  }
-
-  .player {
-    border-radius: 50%;
-    height: 10px;
-    width: 10px;
   }
 
   .tile {
