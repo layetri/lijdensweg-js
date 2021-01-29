@@ -4,10 +4,11 @@
     <div class="relative card m-auto">
       <img src="/assets/card.svg" class="z-0 w-full h-auto ml-2" alt="">
       <div class="h-auto p-12 pt-8 absolute inset-0 flex flex-col">
-        <div class="bg-white rounded-lg p-4 shadow-xl">
-          <img :src="'/assets/situations/'+(Number(card.card.id) + 1)+'.png'" class="mb-2" alt="">
-
-          <h4 class="text-lg font-bold">{{card.card.description}}</h4>
+        <div class="bg-white rounded-lg shadow-xl cardHead" :style="{backgroundImage: 'url(\'/assets/situations/'+(Number(card.card.id) - 1)+'.png\')'}">
+          <div class="p-4 bg-black bg-opacity-50 rounded-lg" >
+            <img :src="'/assets/situations/'+(Number(card.card.id) - 1)+'.png'" class="shadow-lg mb-3" alt="">
+            <h4 class="text-lg font-bold text-white">{{card.card.description}}</h4>
+          </div>
         </div>
 
         <div class="flex-auto"></div>
@@ -44,5 +45,11 @@ export default {
   .card {
     width: 33.333333%;
     max-width: 400px;
+  }
+
+  .cardHead {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
   }
 </style>

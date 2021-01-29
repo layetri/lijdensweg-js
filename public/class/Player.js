@@ -12,17 +12,24 @@ export default class Player {
   }
 
   // Called whenever a player changes position
-  updatePlayerPosition(tile) {
+  updatePlayerPosition(tile, player = 'local') {
+    let garbageCollector = this.currentTile;
     this.currentTile = tile;
-    this.game.sendMessageToAll('updatePosition', {player: this.id, tile: tile.uuid});
+
+    if(garbageCollector !== null) {
+      garbageCollector.tileUpdate(this.game.allPlayers);
+    }
+
+    this.currentTile.tileUpdate(this.game.allPlayers);
+    if(player === 'local') {
+      this.game.sendMessageToAll('updatePosition', {player: this.id, tile: tile.uuid});
+    }
   }
 
   // Move a player by amount
   movePlayer(amount) {
     amount > 0 ? this.movePlayerForward(amount) : this.movePlayerBack(amount);
-    this.currentTile.tileUpdate();
-
-    document.getElementById("gameContainer").scrollLeft = this.currentTile.xDist > 2 ? (this.currentTile.xDist * 200) - 400 : 0;
+    document.getElementById("gameContainer").scrollLeft = this.currentTile.xDist > 4 ? (this.currentTile.xDist * 200) - 800 : 0;
   }
 
   // Move player back by an amount
@@ -40,17 +47,10 @@ export default class Player {
   // Move player forward by an amount
   movePlayerForward(amount) {
     for(let i = 0; i < amount; i++) {
-      if (this.currentTile.isJunction()) {
-        this.sendMessage('chooseNextTile').then((response) => {
-          this.updatePlayerPosition(response);
-        });
-      }
-      else {
-        this.updatePlayerPosition(this.game.board.find(this.currentTile.nextTiles[0]));
-      }
+      this.updatePlayerPosition(this.game.board.find(this.currentTile.nextTiles[0]));
 
       if (this.currentTile.isEndTile()) {
-        this.game.playerFinished(this);
+        this.game.playerFinished('current');
       }
     }
   }

@@ -41,6 +41,18 @@ export default class Game {
     this.allPlayers.splice(this.allPlayers.indexOf(player), 1);
   }
 
+  playerFinished(player) {
+    if(player === 'current') {
+      this.sendMessageToAll('playerFinished', {player: this.player.id});
+    } else {
+      let lcPlayer = this.allPlayers.find(p => {
+        return p.id === player;
+      });
+
+      this.player.sendMessage('playerFinished', player.name);
+    }
+  }
+
   makeBoard() {
     this.board = new Board(this);
     this.board.createBoard();
@@ -89,11 +101,17 @@ export default class Game {
     // Reset global game vars
     this.turn_number = 0;
     this.order_number = 0;
+    this.countdown = 3;
 
     // Reset player vars
     this.player.insanity = 0;
     this.player.infection = 0;
     this.player.cards = [];
+
+    this.player.currentTile = this.board.tiles[0];
+    for(let i = 0; i < this.allPlayers.length; i++) {
+      this.allPlayers[i].currentTile = this.board.tiles[0];
+    }
 
     let colors = ['blue', 'green', 'yellow', 'red', 'pink', 'purple'];
     for(let i = 0; i < this.allPlayers.length; i++) {
@@ -105,9 +123,9 @@ export default class Game {
       }).length > 0);
 
       this.allPlayers[i].color = color;
-    }
 
-    this.player.jumpToStart();
+      this.allPlayers[i].updatePlayerPosition(this.board.tiles[0]);
+    }
   }
 
   nextTurn() {
@@ -115,6 +133,7 @@ export default class Game {
     this.order_number = this.turn_number % this.allPlayers.length;
 
     if(this.order_number === this.player.play_order) {
+      this.player.earn(5);
       this.player.sendMessage('yourTurn');
     }
   }
@@ -133,22 +152,25 @@ export default class Game {
               if(this.chosenTile !== null) {
                 // Fill in the user selected tile
                 currentTile = this.board.find(currentTile.nextTiles[this.chosenTile]);
+                this.chosenTile = null;
               } else {
                 this.junctionFlag = true;
                 this.pauseMoving = true;
               }
+            } else if(currentTile.isEndTile()) {
+              this.playerFinished('current');
             } else {
               currentTile = this.board.find(currentTile.nextTiles[0]);
             }
 
             if(!this.pauseMoving) {
-              document.getElementById("gameContainer").scrollLeft = currentTile.xDist > 2 ? (currentTile.xDist * 200) - 400 : 0;
+              document.getElementById("gameContainer").scrollLeft = currentTile.xDist > 4 ? (currentTile.xDist * 200) - 800 : 0;
+              this.sendMessageToAll('playerMoving', {player: this.player.id, tile: currentTile.uuid});
               this.player.updatePlayerPosition(currentTile);
               i++;
             }
           } else {
             clearInterval(this.dice_int);
-            currentTile.tileUpdate();
             this.pickCard();
           }
         }
@@ -156,12 +178,12 @@ export default class Game {
     }
 
     this.player.sendMessage('rollDice', {dice: dice, callback: cb}).then();
-    this.player.earn(5);
   }
 
   endTurn() {
     if(this.order_number === this.player.play_order) {
-      this.player.sendMessage('turnEnd').then(() => {});
+      this.player.sendMessage('turnEnd', this.player.choice).then(() => {});
+      this.player.card = null;
       this.sendMessageToAll('playerFinished', {player: this.player.id});
       this.nextTurn();
     }
@@ -191,11 +213,14 @@ export default class Game {
 
   performAction(data) {
     let actions;
-    if(data.action.length > 0) {
+    if(data.action !== undefined && data.action.length > 0) {
       actions = JSON.parse(data.action);
     } else {
       actions = data;
     }
+
+    this.player.choice = actions;
+
     // Action format: [who, what, how much, (optional: item)]
     for(let i = 0; i < actions.length; i++) {
       let action = actions[i];
@@ -203,6 +228,7 @@ export default class Game {
       if(['current', 'all'].includes(action[0])) {
         // Handle different values to increase
         this.player.handleAction(action);
+
         // Handle broadcast to other players
         if(action[0] === 'all') {
           this.sendMessageToAll('performAction', action);
@@ -211,7 +237,16 @@ export default class Game {
         this.sendMessageToAll('performAction', action);
       }
     }
+  }
 
-    this.player.card = null;
+  handlePlayerMoving(data) {
+    let player_id = data.player, tile_id = data.tile;
+    let player = this.allPlayers.find(p => {
+      return p.id === player_id;
+    });
+    let tile = this.board.tiles.find(t => {
+      return t.uuid === tile_id;
+    });
+    player.updatePlayerPosition(tile, 'foreign');
   }
 }

@@ -30,7 +30,7 @@
     </div>
 
 <!--  Game main screen  -->
-    <div class="container mx-auto overflow-auto h-full" id="gameContainer" v-else>
+    <div class="overflow-auto h-full w-full" id="gameContainer" v-else>
       <div class="fixed z-10 top-6 left-6 w-1/5">
         <div class="w-full p-4">
           <div class="w-full p-4 pb-12 bg-gray-50 border-gray-100 shadow rounded-lg flex">
@@ -44,7 +44,7 @@
               </h5>
             </div>
             <div>
-              <img :src="'/assets/dice/'+dice+'.png'" style="height: 50px; width: 50px;" v-if="diceFace === null">
+              <img :src="'/assets/dice/'+dice+'.png'" style="height: 50px; width: 50px;" v-if="diceFace === null && dice !== null">
             </div>
           </div>
         </div>
@@ -63,6 +63,11 @@
 
       <board :board="game.board" :players="game.allPlayers"></board>
 
+<!--   Countdown UI element   -->
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="countdown > 0">
+        <h1 class="text-white text-9xl font-black">{{ countdown }}</h1>
+      </div>
+
 <!--   Direction Selector UI element   -->
       <direction-picker :directions="game.player.currentTile.nextTiles.length" v-if="game.junctionFlag" @pick="setDirection"></direction-picker>
 
@@ -77,6 +82,39 @@
 <!--   Start of Turn UI element   -->
       <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="yourTurn">
         <h1 class="text-9xl font-black text-white m-auto">Je bent aan de beurt!</h1>
+      </div>
+
+<!--   End of Turn UI element   -->
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="turnEnd !== null">
+        <div class="w-2/3 relative m-auto">
+          <h1 class="text-9xl font-black text-white m-auto">Je beurt is voorbij...</h1>
+          <h3 class="text-4xl font-black text-gray-50 m-auto" v-if="game.player.insanity > 10">...en je hebt flink wat schade aangericht!</h3>
+          <h3 class="text-4xl font-black text-gray-50 m-auto" v-else-if="-10 < game.player.insanity < 10">...en je doet het rustig aan!</h3>
+          <h3 class="text-4xl font-black text-gray-50 m-auto" v-else-if="game.player.insanity < -10">...en je bent op het rechte pad gebleven!</h3>
+
+          <div class="grid grid-cols-3 mb-12">
+            <div v-for="action in turnEnd">
+              <div class="p-6">
+                <img :src="'/assets/items/'+elementIcons[action[1]]+'.svg'" alt="" v-if="action[1] !== 'item'">
+                <img :src="'/assets/items/'+action[3]+'.svg'" alt="" v-else>
+              </div>
+              <h4 class="text-lg font-black text-gray-400" v-if="action[0] === 'all'">iedereen</h4>
+              <h4 class="text-lg font-black text-gray-400" v-else-if="action[0] === 'others'">alle anderen</h4>
+
+              <h2 class="text-2xl font-black text-white" v-if="action[1] !== 'vaccinate'">
+                {{elementTranslations[action[1]]}}
+                <span :class="[['insanity', 'infection'].includes(action[1]) ? [action[2] < 0 ? 'text-green-500' : 'text-red-500'] : [action[2] > 0 ? 'text-green-500' : 'text-red-500']]">
+                  <span v-if="action[2] > 0">+</span>{{action[2]}} <span v-if="action[3]">{{action[3]}}</span>
+                </span>
+              </h2>
+              <h2 class="text-2xl font-black text-green-500" v-else>
+                Je bent gevaccineerd!
+              </h2>
+            </div>
+          </div>
+
+          <button class="text-2xl px-4 py-2 rounded-xl mx-auto text-white bg-blue-500 cursor-pointer shadow-lg" @click="turnEnd = null">Okay!</button>
+        </div>
       </div>
 
       <div class="w-full fixed bottom-0 left-0">
@@ -114,15 +152,18 @@
         localBus: new Vue(),
         game: null,
         editUsername: false,
-        board: null,
         connection: null,
         started: false,
         dice: null,
         diceFace: null,
-        animations: {dice: null, moneyMut: null, yourTurn: null},
+        animations: {dice: null, moneyMut: null, yourTurn: null, turnEnd: null},
+        elementTranslations: {infection: "infectie", insanity: "wappie-heid", money: "geld", item: "items", move: "spelpositie", vaccinate: "gevaccineerd"},
+        elementIcons: {infection: 'thermometer', insanity: 'virus', money: 'coin', item: 'backpack', move: 'steps', vaccinate: 'vaccine'},
 
         yourTurn: false,
-        moneyMutation: null
+        moneyMutation: null,
+        turnEnd: null,
+        countdown: 0
       }
     },
     created() {
@@ -170,12 +211,15 @@
         }).listenForWhisper('orderPlayers', data => {
           // Order the local players with the received player order
           this.orderPlayers(data.startOrder);
+        }).listenForWhisper('playerMoving', data => {
+          // Handle another player's movement
+          this.game.handlePlayerMoving(data);
         }).listenForWhisper('playerFinished', data => {
           // Handle the end of another player's turn
           this.game.nextTurn();
         }).listenForWhisper('performAction', data => {
           // Handle actions that affect multiple players
-          this.game.performAction(data);
+          this.game.player.handleAction(data);
         }).listenForWhisper('newChat', data => {
           // Handle incoming chat messages
           console.log(data);
@@ -221,11 +265,16 @@
 
         this.localBus.$on('yourTurn', () => {
           clearTimeout(this.animations.yourTurn);
+          this.turnEnd = null;
           this.yourTurn = true;
 
           this.animations.yourTurn = setTimeout(() => {
             this.yourTurn = false
           }, 2000);
+        });
+
+        this.localBus.$on('turnEnd', data => {
+          this.turnEnd = data;
         });
       },
       // Initialize the game [only ran on initial client]
@@ -246,6 +295,9 @@
           this.startGame();
         });
       },
+      returnToLobby() {
+        this.started = false;
+      },
       // Order local players [ran on all clients]
       orderPlayers(order) {
         // Assign play order to players
@@ -264,7 +316,13 @@
           // Reset the local game state
           this.game.reset();
           // Countdown from 3
-          // ...
+          let int = setInterval(() => {
+            if(this.countdown > 0) {
+              this.countdown--;
+            } else {
+              clearInterval(int);
+            }
+          }, 1000);
           // Switch to playing state
           this.started = true;
           // Run the turn content

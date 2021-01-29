@@ -3,7 +3,7 @@
 import { v4 as uuid } from 'uuid';
 
 export default class Tile {
-  constructor(specialFunction, color, xDist, yDist, isMainBranch) {
+  constructor(specialFunction, color, xDist, yDist, isMainBranch, tileType = 'path') {
     this.uuid = uuid();
     this.nextTiles = [];
     this.previousTiles = [];
@@ -14,6 +14,7 @@ export default class Tile {
     this.xDist = xDist;
     this.yDist = yDist;
     this.main = isMainBranch;
+    this.type = tileType;
   }
 
   isJunction() {
@@ -28,7 +29,10 @@ export default class Tile {
     return this.nextTiles.length < 1;
   }
 
-  tileUpdate() {
+  tileUpdate(players) {
+    this.players = players.filter(p => {
+      return p.currentTile.uuid === this.uuid;
+    });
     this.infectionFunction();
     this.insanityFunction();
     if (this.specialFunction != null) this.specialFunction();

@@ -7,6 +7,7 @@ export default class Board {
 
     this.tileWidth = 10;
     this.tileHeight = 10
+    this.colors = ['blue', 'green', 'yellow', 'red', 'pink', 'purple', 'indigo'];
   }
 
   // Fill function transforms the received data into objects and fills the local board array
@@ -40,7 +41,13 @@ export default class Board {
 
     let tmpPath = [];
     for (let i = 0; i < nTiles; i++) {
-      tmpPath.push(new Tile(null, 'red', startDistance, 0, true));
+      let color = this.colors[Math.floor(Math.random() * this.colors.length)];
+      // Optional: implement random money tiles
+      // if(Math.random() > 0.9) {
+      //   func = ['current', 'earn', '10'];
+      // }
+
+      tmpPath.push(new Tile(null, color, startDistance, 0, true));
       startDistance++;
     }
 
@@ -50,6 +57,8 @@ export default class Board {
     if(this.tiles.length > 0) {
       prevTile.nextTiles.push(tmpPath[0].uuid);
       tmpPath[0].previousTiles.push(prevTile.uuid);
+    } else {
+      tmpPath[0].type = 'startTile';
     }
 
     this.tiles = this.tiles.concat(tmpPath);
@@ -75,13 +84,21 @@ export default class Board {
     });
     let yPositions = [1, -1, 2, -2, 3, -3];
 
+    // Set junction type for start tile
+    if (branches.length < 2) {
+      prevTile.type = 'tJunc';
+    } else {
+      prevTile.type = 'qJunc';
+    }
+
     // Extend main path until it is as long as the longest branch
     //----------------------------------------------------------------//
     let tmpPath = [];
     let tmpDist = 0;
 
     for (let i = 0; i < branches[0]; i++) {
-      tmpPath.push(new Tile(null, 'blue', startDistance + tmpDist, 0, true));
+      let color = this.colors[Math.floor(Math.random() * this.colors.length)];
+      tmpPath.push(new Tile(null, color, startDistance + tmpDist, 0, true));
       tmpDist++;
     }
 
@@ -108,25 +125,25 @@ export default class Board {
       let yPos = yPositions[i];
 
       for (let j = 0; j < branches[i]; j++) {
-        // let yPos = 0;
-        //
-        // // Rework
-        // // branch 1 => yPos 1
-        // // branch 2 => yPos -1
-        // // branch 3 => yPos 2
-        // yPos = -1 * Math.floor(i / 2) + j;
-        // // Amount of branches is even
-        // if (branches.length % 2 === 0 && yPos >= 0) {
-        //   yPos++;
-        // }
+        let specTile = 'path';
+        if(j === 0 && i % 2 !== 0) {
+          specTile = 'branchStart-t';
+        } else if(j === 0) {
+          specTile = 'branchStart';
+        } else if(j === branches[i] - 1 && i % 2 !== 0) {
+          specTile = 'branchEnd-t';
+        } else if(j === branches[i] - 1) {
+          specTile = 'branchEnd';
+        }
 
+        let color = this.colors[Math.floor(Math.random() * this.colors.length)];
 
-        tmpPath.push(new Tile(null, 'yellow', xPos - 1, yPos, false));
+        tmpPath.push(new Tile(null, color, xPos - 1, yPos, false, specTile));
         xPos++;
       }
 
-      let endTile = tmpPath.find(t => {
-        return t.nextTiles.length === 0
+      let endTile = this.tiles.find(t => {
+        return t.main && t.xDist === xPos - 2
       });
 
       this.setPrevious(tmpPath);
@@ -140,6 +157,15 @@ export default class Board {
       tmpPath[tmpPath.length - 1].nextTiles.push(endTile.uuid);
       endTile.previousTiles.push(tmpPath[tmpPath.length - 1].uuid);
 
+      // Set junction type of endTile
+      if(branches.length > 1 && branches[0] === branches[1]) {
+        endTile.type = 'qJunc';
+      } else if(i % 2 !== 0) {
+        endTile.type = 'tJunc-i';
+      } else {
+        endTile.type = 'tJunc';
+      }
+
       this.tiles = this.tiles.concat(tmpPath);
     }
     //----------------------------------------------------------------//
@@ -147,11 +173,11 @@ export default class Board {
 
   // Creates the board
   createBoard() {
-    this.appendPath(5);
-    this.appendJunction([3,6]);
-    this.appendPath(7);
-    this.appendJunction([5,4,8]);
-    this.appendPath(3);
+    this.appendPath(Math.floor(Math.random() * 6) + 2);
+    this.appendJunction([Math.floor(Math.random() * 5) + 3, Math.floor(Math.random() * 5) + 3]);
+    this.appendPath(Math.floor(Math.random() * 7) + 2);
+    this.appendJunction([Math.floor(Math.random() * 9) + 3, Math.floor(Math.random() * 5) + 3]);
+    this.appendPath(Math.floor(Math.random() * 4) + 2);
   }
 
   // Insert previous direct neighbours for every tile in a path
