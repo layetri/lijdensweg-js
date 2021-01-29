@@ -95,7 +95,7 @@
           <div class="grid grid-cols-3 mb-12">
             <div v-for="action in turnEnd">
               <div class="p-6">
-                <img :src="'/assets/items/'+elementIcons[action[1]]+'.svg'" alt="" v-if="action[1] !== 'item'">
+                <img :src="'/assets/items/'+elementIcons[action[1]]+'.svg'" alt="" v-if="!['item', 'buy'].includes(action[1])">
                 <img :src="'/assets/items/'+action[3]+'.svg'" alt="" v-else>
               </div>
               <h4 class="text-lg font-black text-gray-400" v-if="action[0] === 'all'">iedereen</h4>
@@ -104,7 +104,7 @@
               <h2 class="text-2xl font-black text-white" v-if="action[1] !== 'vaccinate'">
                 {{elementTranslations[action[1]]}}
                 <span :class="[['insanity', 'infection'].includes(action[1]) ? [action[2] < 0 ? 'text-green-500' : 'text-red-500'] : [action[2] > 0 ? 'text-green-500' : 'text-red-500']]">
-                  <span v-if="action[2] > 0">+</span>{{action[2]}} <span v-if="action[3]">{{action[3]}}</span>
+                  {{action[2]}} <span v-if="action[3]">{{action[3]}}</span>
                 </span>
               </h2>
               <h2 class="text-2xl font-black text-green-500" v-else>
@@ -118,8 +118,8 @@
       </div>
 
       <div class="w-full fixed bottom-0 left-0">
-        <div class="w-3/4 mx-auto rounded-t-xl bg-white shadow-xl p-4 flex items-center">
-          <button class="p-2 bg-blue-400 rounded-lg shadow diceBtn" v-if="game.player.play_order === game.order_number" @click="game.startTurn()">
+        <div class="w-3/4 p-4 flex items-center mx-auto rounded-t-xl bg-white shadow-xl">
+          <button class="p-2 bg-blue-400 rounded-lg shadow diceBtn" v-if="game.player.play_order === game.order_number" @click="game.startTurn()" style="min-width: 4.5rem;">
             <img src="/assets/items/dice.svg" class="w-full cursor-pointer" alt="">
           </button>
 
@@ -139,7 +139,7 @@
 
 <script>
   import Vue from 'vue';
-  import Game from '../../../public/class/Game';
+  import Game from "../../../public/class/Game";
 
   export default {
     name: "Game",
@@ -157,7 +157,7 @@
         dice: null,
         diceFace: null,
         animations: {dice: null, moneyMut: null, yourTurn: null, turnEnd: null},
-        elementTranslations: {infection: "infectie", insanity: "wappie-heid", money: "geld", item: "items", move: "spelpositie", vaccinate: "gevaccineerd"},
+        elementTranslations: {infection: "infectie", insanity: "wappie-heid", money: "geld", item: "items", buy: "items", move: "spelpositie", vaccinate: "gevaccineerd"},
         elementIcons: {infection: 'thermometer', insanity: 'virus', money: 'coin', item: 'backpack', move: 'steps', vaccinate: 'vaccine'},
 
         yourTurn: false,
