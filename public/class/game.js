@@ -165,8 +165,10 @@ export default class Game {
 
             if(!this.pauseMoving) {
               document.getElementById("gameContainer").scrollLeft = currentTile.xDist > 4 ? (currentTile.xDist * 200) - 800 : 0;
+
               this.sendMessageToAll('playerMoving', {player: this.player.id, tile: currentTile.uuid});
-              this.player.updatePlayerPosition(currentTile);
+
+              this.player.updatePlayerPosition(currentTile, 'local', i === dice - 1);
               i++;
             }
           } else {

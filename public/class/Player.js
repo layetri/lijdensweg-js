@@ -12,12 +12,12 @@ export default class Player {
   }
 
   // Called whenever a player changes position
-  updatePlayerPosition(tile, player = 'local') {
+  updatePlayerPosition(tile, player = 'local', final = false) {
     let garbageCollector = this.currentTile;
     this.currentTile = tile;
 
     if(garbageCollector !== null) {
-      garbageCollector.tileUpdate(this.game.allPlayers);
+      garbageCollector.tileUpdate(this.game.allPlayers, final);
     }
 
     this.currentTile.tileUpdate(this.game.allPlayers);

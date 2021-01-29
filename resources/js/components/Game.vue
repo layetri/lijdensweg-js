@@ -92,7 +92,7 @@
           <h3 class="text-4xl font-black text-gray-50 m-auto" v-else-if="-10 < game.player.insanity < 10">...en je doet het rustig aan!</h3>
           <h3 class="text-4xl font-black text-gray-50 m-auto" v-else-if="game.player.insanity < -10">...en je bent op het rechte pad gebleven!</h3>
 
-          <div class="grid grid-cols-3 mb-12">
+          <div class="grid grid-cols-4 mb-12">
             <div v-for="action in turnEnd">
               <div class="p-6">
                 <img :src="'/assets/items/'+elementIcons[action[1]]+'.svg'" alt="" v-if="!['item', 'buy'].includes(action[1])">

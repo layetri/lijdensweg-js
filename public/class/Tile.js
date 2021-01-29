@@ -29,12 +29,15 @@ export default class Tile {
     return this.nextTiles.length < 1;
   }
 
-  tileUpdate(players) {
+  tileUpdate(players, final = false) {
     this.players = players.filter(p => {
       return p.currentTile.uuid === this.uuid;
     });
-    this.infectionFunction();
-    this.insanityFunction();
+
+    if(!this.isStartTile() && final) {
+      this.infectionFunction();
+      this.insanityFunction();
+    }
     if (this.specialFunction != null) this.specialFunction();
   }
 
