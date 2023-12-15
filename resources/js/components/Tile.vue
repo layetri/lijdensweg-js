@@ -1,8 +1,11 @@
 <template>
-  <div class="tileContainer" @click="status = true" :class="[tile.type+'-p', player.currentTile.uuid === tile.uuid ? 'border-2 border-blue-400' : '']">
-    <div class="tile h-full w-full p-2" :class="[tile.type+'-b', ['startTile', 'finishTile'].includes(tile.type) ? 'bg-'+tile.color+'-500 border-'+tile.color+'-700 white-text' : 'bg-'+tile.color+'-100 border-'+tile.color+'-500']">
+  <div class="tileContainer" @click="status = true" :class="tile.type+'-p'">
+    <div class="tile h-full w-full p-2 relative" :class="[tile.type+'-b', ['startTile', 'finishTile'].includes(tile.type) ? 'bg-'+tile.color+'-500 border-'+tile.color+'-700 white-text' : 'bg-'+tile.color+'-100 border-'+tile.color+'-500']">
+      <div class="w-full text-center text-white font-black text-lg bg-white bg-opacity-30 p-1 rounded" v-if="tile.type === 'finishTile'">Finish</div>
+      <div class="w-full text-center text-white font-black text-lg bg-white bg-opacity-30 p-1 rounded" v-else-if="tile.type === 'startTile'">Start</div>
 <!--      <span>{{tile.xDist}}, {{tile.yDist}} <b>[{{tile.type}}]</b></span><br>-->
-      <div class="flex h-full">
+
+      <div class="flex h-full w-full absolute inset-0">
         <div class="grid m-auto" :class="'grid-cols-'+wrapNumber()">
           <div v-for="person in tile.players" class="text-center w-max py-3 px-auto">
             <div class="player-orb shadow-lg mx-auto flex z-10" :class="'bg-'+person.color+'-500'">

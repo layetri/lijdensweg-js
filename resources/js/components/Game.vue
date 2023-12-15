@@ -84,6 +84,45 @@
         <h1 class="text-9xl font-black text-white m-auto">Je bent aan de beurt!</h1>
       </div>
 
+<!--   Infected UI element   -->
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="beenInfected">
+        <div class="m-auto text-white">
+          <h1 class="text-9xl font-black">
+            <span class="text-red-500">Oh nee!</span> Je bent besmet!
+          </h1>
+          <h3 class="text-2xl font-bold">
+            Sla 2 beurten over
+          </h3>
+        </div>
+      </div>
+
+<!--   Infected UI element   -->
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="skippingTurn">
+        <div class="m-auto text-white">
+          <h1 class="text-9xl font-black">
+            Nog even wachten!
+          </h1>
+          <h3 class="text-2xl font-bold" v-if="game.player.skipTurns > 1">
+            Je hebt nog {{game.player.skipTurns}} weken thuisquarantaine te gaan
+          </h3>
+          <h3 class="text-2xl font-bold" v-else>
+            Je hebt nog 1 week thuisquarantaine te gaan
+          </h3>
+        </div>
+      </div>
+
+<!--   End of Game UI element   -->
+      <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="finished !== null">
+        <div class="m-auto text-white">
+          <img src="/assets/proud_dads.svg" class="w-3/4 mx-auto my-6" alt="">
+
+          <h1 class="text-3xl font-black">
+            <span :class="'text-'+finished.color+'-500'">{{finished.name}}</span> heeft het einde bereikt!
+          </h1>
+          <h3 class="text-xl font-bold">Gefeliciteerd, {{finished.name}} 🎉</h3>
+          </div>
+      </div>
+
 <!--   End of Turn UI element   -->
       <div class="fixed flex inset-0 w-full h-full z-10 bg-opacity-60 bg-black" v-if="turnEnd !== null">
         <div class="w-2/3 relative m-auto">
@@ -156,14 +195,17 @@
         started: false,
         dice: null,
         diceFace: null,
-        animations: {dice: null, moneyMut: null, yourTurn: null, turnEnd: null},
+        animations: {dice: null, moneyMut: null, yourTurn: null, turnEnd: null, beenInfected: null, skippingTurn: null},
         elementTranslations: {infection: "infectie", insanity: "wappie-heid", money: "geld", item: "items", buy: "items", move: "spelpositie", vaccinate: "gevaccineerd"},
         elementIcons: {infection: 'thermometer', insanity: 'virus', money: 'coin', item: 'backpack', move: 'steps', vaccinate: 'vaccine'},
 
         yourTurn: false,
+        beenInfected: false,
+        skippingTurn: false,
         moneyMutation: null,
         turnEnd: null,
-        countdown: 0
+        countdown: 0,
+        finished: null
       }
     },
     created() {
@@ -215,6 +257,9 @@
           // Handle another player's movement
           this.game.handlePlayerMoving(data);
         }).listenForWhisper('playerFinished', data => {
+          // Handle the end of another player's turn
+          this.game.playerFinished(data.player);
+        }).listenForWhisper('playerFinishedTurn', data => {
           // Handle the end of another player's turn
           this.game.nextTurn();
         }).listenForWhisper('performAction', data => {
@@ -275,6 +320,28 @@
 
         this.localBus.$on('turnEnd', data => {
           this.turnEnd = data;
+        });
+
+        this.localBus.$on('playerFinished', data => {
+          this.finished = data;
+        });
+
+        this.localBus.$on('skippingTurn', data => {
+          clearTimeout(this.animations.skippingTurn);
+          this.skippingTurn = true;
+
+          this.animations.skippingTurn = setTimeout(() => {
+            this.skippingTurn = false
+          }, 2000);
+        });
+
+        this.localBus.$on('beenInfected', data => {
+          clearTimeout(this.animations.beenInfected);
+          this.beenInfected = true;
+
+          this.animations.beenInfected = setTimeout(() => {
+            this.beenInfected = false
+          }, 2000);
         });
       },
       // Initialize the game [only ran on initial client]

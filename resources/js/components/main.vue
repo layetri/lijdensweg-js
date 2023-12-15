@@ -4,7 +4,8 @@
       <game :room="room" :user="user"></game>
     </div>
     <div class="container mx-auto py-5" v-else>
-      <h1 class="text-6xl text-center">Lijdensweg</h1>
+<!--      <h1 class="text-6xl text-center">Lijdensweg</h1>-->
+      <img src="/assets/logo.png" class="w-1/3 mx-auto" alt="Lijdensweg">
       <join-room @joined="joinRoom"></join-room>
     </div>
   </div>

@@ -44,12 +44,13 @@ export default class Game {
   playerFinished(player) {
     if(player === 'current') {
       this.sendMessageToAll('playerFinished', {player: this.player.id});
+      this.player.sendMessage('playerFinished', this.player);
     } else {
       let lcPlayer = this.allPlayers.find(p => {
         return p.id === player;
       });
 
-      this.player.sendMessage('playerFinished', player.name);
+      this.player.sendMessage('playerFinished', lcPlayer);
     }
   }
 
@@ -133,8 +134,15 @@ export default class Game {
     this.order_number = this.turn_number % this.allPlayers.length;
 
     if(this.order_number === this.player.play_order) {
-      this.player.earn(5);
-      this.player.sendMessage('yourTurn');
+      if (this.player.skipTurns > 0) {
+        this.player.skipTurns--;
+        this.player.increaseInfection(-25);
+        this.player.sendMessage('skippingTurn');
+        this.endTurn();
+      } else {
+        this.player.earn(5);
+        this.player.sendMessage('yourTurn');
+      }
     }
   }
 
@@ -146,10 +154,10 @@ export default class Game {
       let currentTile = this.player.currentTile;
 
       this.dice_int = setInterval(() => {
-        if(!this.pauseMoving) {
+        if (!this.pauseMoving) {
           if (i < dice) {
             if (currentTile.isJunction() && i <= dice - 1) {
-              if(this.chosenTile !== null) {
+              if (this.chosenTile !== null) {
                 // Fill in the user selected tile
                 currentTile = this.board.find(currentTile.nextTiles[this.chosenTile]);
                 this.chosenTile = null;
@@ -157,13 +165,13 @@ export default class Game {
                 this.junctionFlag = true;
                 this.pauseMoving = true;
               }
-            } else if(currentTile.isEndTile()) {
+            } else if (currentTile.isEndTile()) {
               this.playerFinished('current');
             } else {
               currentTile = this.board.find(currentTile.nextTiles[0]);
             }
 
-            if(!this.pauseMoving) {
+            if (!this.pauseMoving) {
               document.getElementById("gameContainer").scrollLeft = currentTile.xDist > 4 ? (currentTile.xDist * 200) - 800 : 0;
 
               this.sendMessageToAll('playerMoving', {player: this.player.id, tile: currentTile.uuid});
@@ -173,7 +181,9 @@ export default class Game {
             }
           } else {
             clearInterval(this.dice_int);
-            this.pickCard();
+            if (!currentTile.isEndTile()) {
+              this.pickCard();
+            }
           }
         }
       }, 750);
@@ -184,9 +194,12 @@ export default class Game {
 
   endTurn() {
     if(this.order_number === this.player.play_order) {
-      this.player.sendMessage('turnEnd', this.player.choice).then(() => {});
+      if(this.player.skipTurns === 0) {
+        this.player.sendMessage('turnEnd', this.player.choice).then(() => {
+        });
+      }
       this.player.card = null;
-      this.sendMessageToAll('playerFinished', {player: this.player.id});
+      this.sendMessageToAll('playerFinishedTurn', {player: this.player.id});
       this.nextTurn();
     }
   }

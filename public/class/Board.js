@@ -178,6 +178,7 @@ export default class Board {
     this.appendPath(Math.floor(Math.random() * 7) + 2);
     this.appendJunction([Math.floor(Math.random() * 9) + 3, Math.floor(Math.random() * 5) + 3]);
     this.appendPath(Math.floor(Math.random() * 4) + 2);
+    this.tiles[this.tiles.length - 1].type = 'finishTile';
   }
 
   // Insert previous direct neighbours for every tile in a path
