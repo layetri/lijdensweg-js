@@ -1,6 +1,6 @@
 <template>
   <div class="fixed flex flex-col h-full w-full inset-0 bg-black bg-opacity-60 z-20" id="directionPicker">
-    <div id="rightBranch" class="m-auto p-6 w-max text-center" @click="pick(2)"v-if="directions > 2">
+    <div id="rightBranch" class="m-auto p-6 w-max text-center" @click="pick(2)" v-if="directions > 2">
       <div class="p-2 bg-white cursor-pointer">Hier...</div>
     </div>
 
@@ -12,7 +12,7 @@
       </div>
     </div>
 
-    <div id="leftBranch" class="m-auto p-6 w-max text-center" @click="pick(1)"v-if="directions > 1">
+    <div id="leftBranch" class="m-auto p-6 w-max text-center" @click="pick(1)" v-if="directions > 1">
       <div class="p-2 bg-white cursor-pointer">...of hier?</div>
     </div>
   </div>

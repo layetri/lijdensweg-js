@@ -16,7 +16,7 @@
         <div class="w-1/4 p-4 bg-white border-gray-100 shadow rounded-lg">
           <b>Spelers in deze kamer</b>
           <div class="my-4">
-            <div v-for="player in game.allPlayers">
+            <div v-for="player in game.allPlayers" :key="player.id">
               {{player.name}} <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
             </div>
           </div>
@@ -53,7 +53,7 @@
         <div style="margin-top: -4rem;" class="w-full p-4 bg-white border-gray-100 shadow-lg rounded-lg">
           <b>Spelers in deze kamer</b>
           <div class="my-4">
-            <div :class="[[player.play_order === game.order_number ? 'font-bold' : 'text-gray-700'], 'text-'+player.color+'-500']" v-for="player in game.allPlayers">
+            <div :class="[[player.play_order === game.order_number ? 'font-bold' : 'text-gray-700'], 'text-'+player.color+'-500']" v-for="player in game.allPlayers" :key="player.id">
               {{player.name}}
               <span class="text-gray-400" v-if="player.id === user.id">(jij)</span>
             </div>
@@ -132,7 +132,7 @@
           <h3 class="text-4xl font-black text-gray-50 m-auto" v-else-if="game.player.insanity < -10">...en je bent op het rechte pad gebleven!</h3>
 
           <div class="grid grid-cols-4 mb-12">
-            <div v-for="action in turnEnd">
+            <div v-for="action in turnEnd" :key="turnEnd.indexOf(action)">
               <div class="p-6">
                 <img :src="'/assets/items/'+elementIcons[action[1]]+'.svg'" alt="" v-if="!['item', 'buy'].includes(action[1])">
                 <img :src="'/assets/items/'+action[3]+'.svg'" alt="" v-else>
